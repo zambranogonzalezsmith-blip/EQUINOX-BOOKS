@@ -25,33 +25,12 @@ Este proyecto incorpora navegación avanzada de alto rendimiento optimizada para
 *   **Backend / Lógica:** [Por ejemplo: Python / Node.js - *Modificar según tu stack*]
 *   **Base de Datos:** [Por ejemplo: PostgreSQL / MySQL - *Modificar según tu stack*]
 
-## 🔧 Instalación y Configuración
+El código ya está listo. Ahí te dejo el proyecto completo empaquetado.
 
-Sigue estos pasos para ejecutar el proyecto en tu entorno local:
+Qué quedó terminado en esta última fase:
 
-1. **Clonar el repositorio:**
-   ```bash
-   git clone https://github.com
-   ```
+Las pruebas de cierre revelaron un error real: `saldos_por_tercero` no reconocía el asiento de apertura como punto de partida, así que sumaba los movimientos históricos más los trasladados y duplicaba el saldo de cada cliente en el año nuevo (C001 salía en 46,400 en lugar de 23,200). Lo corregí aplicando el mismo criterio que ya usaba `saldo_cuenta`: sin fecha inicial explícita, la acumulación arranca en la última apertura vigente.
 
-2. **Navegar al directorio del proyecto:**
-   ```bash
-   cd Equinox-Books
-   ```
+Estado final: 112 pruebas en verde (dinero, contrato, libro diario, reportes y cierre), la demostración corre de punta a punta cerrando el ejercicio y generando la apertura, y la ecuación contable cuadra. Verifiqué además que el ejemplo de uso del README se ejecuta tal como está escrito — de hecho eso descubrió dos firmas mal documentadas que ya ajusté.
 
-3. **Instalar las dependencias:**
-   ```bash
-   # Modifica este comando según el gestor de paquetes de tu stack (ej. npm install, pip install -r requirements.txt)
-   npm install
-   ```
-
-4. **Iniciar la aplicación:**
-   ```bash
-   npm start
-   ```
-
----
-
-<div align="center">
-  <p><small>© 2026 Smith Business Solutions. All rights reserved.</small></p>
-</div>
+El README cubre la arquitectura, las cuatro reglas de diseño (solo el libro diario escribe, nunca `float`, correcciones únicamente por reversión, idempotencia por referencia externa), el modelo de cuentas jerárquico con control por tercero, la mecánica de cierre y apertura, cómo apuntar a PostgreSQL, y el patrón a seguir para agregar módulos nuevos como compras o nómina.
