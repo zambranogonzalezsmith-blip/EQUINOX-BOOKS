@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golden Lion Books - Trading Dashboard</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --panel-bg: #141414;
+            --border-color: #262626;
+            --text-main: #e5e5e5;
+            --text-muted: #8a8a8a;
+            --gold: #d4af37;
+            --green: #22c55e;
+            --red: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- PANTALLA DE INICIO (BOOT SCREEN) --- */
+        #boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease;
+        }
+
+        .boot-terminal {
+            width: 400px;
+            font-family: monospace;
+            color: var(--gold);
+            font-size: 14px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .logo-animation {
+            font-size: 26px;
+            letter-spacing: 6px;
+            font-weight: 700;
+            color: #fff;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 1s forwards 1.5s;
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+            margin-top: 5px;
+            opacity: 0;
+            animation: fadeInUp 1s forwards 2s;
+        }
+
+        /* --- DASHBOARD PRINCIPAL --- */
+        #main-dashboard {
+            display: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .brand h1 { letter-spacing: 4px; font-size: 22px; }
+        .brand p { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+
+        .actions-btn {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* KPI Cards */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        .kpi-card h3 { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .kpi-card .value { font-size: 24px; font-weight: 600; margin-top: 10px; color: var(--gold); }
+
+        /* Módulos de Tablas */
+        .trade-section {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            letter-spacing: 2px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 5px; }
+        .form-group input, .form-group select {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px;
+            border-radius: 3px;
+            outline: none;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+
+        button {
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        button:hover { background: var(--gold); color: #000; }
+        button.danger { border-color: var(--red); color: var(--red); }
+        button.danger:hover { background: var(--red); color: #fff; }
+
+        /* Contenedor con Scroll de tabla tipo Excel */
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-dark);
+            position: sticky;
+            top: 0;
+            color: var(--text-muted);
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        tr:hover { background: #1a1a1a; }
+        .win { color: var(--green); font-weight: 600; }
+        .loss { color: var(--red); font-weight: 600; }
+
+        footer {
+            text-align: center;
+            margin-top: 5px;
+            padding: 20px;
+            font-size: 10px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+        }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PANEL DE PRESENTACIÓN E INICIO TIPO PC -->
+    <div id="boot-screen">
+        <div class="boot-terminal" id="terminal-text"></div>
+        <div class="logo-animation">GOLDEN LION BOOKS</div>
+        <div class="logo-sub">INITIALIZING ENGINE...</div>
+    </div>
+
+    <!-- DASHBOARD PRINCIPAL -->
+    <div id="main-dashboard">
+        <header>
+            <div class="brand">
+                <h1>GOLDEN LION BOOKS</h1>
+                <p>SMITH BUSINESS SOLUTIONS • TRADING SYSTEMS 2026</p>
+            </div>
+            <div class="actions-btn">
+                <button onclick="exportToCSV()">Exportar Excel (CSV)</button>
+                <button class="danger" onclick="if(confirm('¿Seguro que deseas borrar todos los registros?')) { localStorage.clear(); location.reload(); }">Reiniciar Datos</button>
+            </div>
+        </header>
+
+        <!-- PANELES DE CÁLCULO AUTOMÁTICO GLOBAL -->
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <h3>Balance Neto Global</h3>
+                <div class="value" id="kpi-net-balance">$0.00</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Eficiencia (Win Rate)</h3>
+                <div class="value" id="kpi-win-rate">0%</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Trades Totales</h3>
+                <div class="value" id="kpi-total-trades">0</div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 1: FOREX -->
+        <div class="trade-section">
+            <div class="section-title">📊 MERCADO FOREX (Pips & Lotes)</div>
+            <form id="forex-form" onsubmit="addForexTrade(event)">
+                <div class="form-row">
+                    <div class="form-group"><label>Fecha</label><input type="date" id="f-date" required></div>
+                    <div class="form-group"><label>Activo/Par</label><input type="text" id="f-pair" placeholder="EUR/USD" required></div>
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <select id="f-type"><option value="BUY">COMPRA</option><option value="SELL">VENTA</option></select>
+                    </div>
+                    <div class="form-group"><label>Lotaje</label><input type="number" id="f-lot" step="0.01" value="0.10" required></div>
+                    <div class="form-group"><label>Resultado Pips</label><input type="number" id="f-pips" step="0.1" placeholder="Ej: 25" required></div>
+                    <div class="form-group"><label>Ganancia/Pérdida ($)</label><input type="number" id="f-profit" step="0.01" placeholder="Ej: 50 o -30" required></div>
+                </div>
+                <button type="submit">+ Registrar Trade Forex</button>
+            </form>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>Fecha</th><th>Par</th><th>Tipo</th><th>Lotes</th><th>Pips</th><th>Resultado ($)</th></tr>
+                    </thead>
+                    <tbody id="forex-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: OPCIONES BINARIAS -->
+        <div class="trade-section">
+            <div class="section-title">⏱️ OPCIONES BINARIAS (Tiempo & Porcentaje)</div>
+            <form id="binary-form" onsubmit="addBinaryTrade(event)">
+                <div class="form-row">
+                    <div class="form-group"><label>Fecha</label><input type="date" id="b-date" required></div>
+                    <div class="form-group"><label>Activo</label><input type="text" id="b-asset" placeholder="BTC/USD" required></div>
+                    <div class="form-group">
