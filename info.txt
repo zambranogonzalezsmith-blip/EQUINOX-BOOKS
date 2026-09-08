@@ -1,0 +1,80 @@
+Estructura del Proyecto Equinox-Books
+Proyecto Equinox-Books
+Identidad y Propiedad
+• Nombre del Proyecto: Equinox-Books (Solución contable y de auditoría fiscal).
+
+• Propietario: Smith Business Solution 2026.
+
+• Creador Principal: Carlos Smith Zambrano González (Ciudadano Venezolano).
+
+• Desarrollo: Impulsado y estructurado con asistencia de Inteligencia Artificial (IA).
+
+• Contacto: empresaalhadiqainvest@gmail.com
+
+Panel de Presentación (Bienvenida)
+Al iniciar el programa se mostrará un panel oficial con la tipografía y el diseño que proyecte profesionalismo, mostrando:
+
+• Nombre: Equinox-Books.
+
+• Propiedad de: Smith Business Solution 2026.
+
+• Eslogan: "Balance Financiero Corporativo Perfecto. Una solución contable de alta gama desarrollada bajo el ecosistema de Smith Business Solution."
+
+Licencias
+El proyecto debe contar con dos licencias (una visible y una invisible) especificando:
+
+• Fecha y hora de creación del proyecto.
+
+• Autoría: Carlos Smith Zambrano González.
+
+• Impulsado por IA.
+
+• Firma de patente: Smith Business Solution 2026.
+
+Estructura de la Base de Datos Contable (Acorde a las NIC)
+El catálogo de cuentas debe contener las siguientes características por cada cuenta:
+
+1. Código: Número identificador único.
+
+2. Nombre: Denominación de la cuenta.
+
+3. Tipo de Cuenta: (Activo, Pasivo, Patrimonio, Ingresos, Costos, Gastos).
+
+4. Naturaleza: (Débito o Crédito).
+
+5. Ubicación del Saldo/Estado Financiero: (Balance General o Estado de Resultados).
+
+6. Indicadores de Libros: (Libro de Compra, Libro de Venta, o Ninguno).
+
+7. Sección de Destino
+
+8. Tipo Índice: Identificador numérico secuencial.
+
+Ejemplos de Registros en la Base de Datos
+
+• Activo: "Caja" | Código: 1101 | Tipo: Activo | Naturaleza: Débito | Saldo: Balance General | Indicadores: Ninguno | Índice: 1
+
+• Pasivo: "Cuentas por Pagar" | Código: 2101 | Tipo: Pasivo | Naturaleza: Crédito | Saldo: Balance General | Indicadores: Ninguno | Índice: 2
+
+• Ingreso: "Ventas" | Código: 4101 | Tipo: Ingreso | Naturaleza: Crédito | Saldo: Estado de Resultados | Indicadores: Libro de Ventas | Índice: 3
+
+• Gasto (Costo): "Costos de Ventas" | Código: 5101 | Tipo: Gasto | Naturaleza: Débito | Saldo: Estado de Resultados | Indicadores: Libro de Compras | Índice: 4
+
+• Gasto: "Gastos de Personal" | Código: 5102 | Tipo: Gasto | Naturaleza: Débito | Saldo: Estado de Resultados | Indicadores: Ninguno | Índice: 5
+
+Descripción del Proyecto y Arquitectura (Para página interna)
+Equinox Books es un sistema de gestión contable y auditoría fiscal diseñado para ofrecer una experiencia visualmente limpia, robusta y de alta precisión para medianas y grandes empresas. Inspirado en la simetría del equinoccio, la plataforma garantiza el equilibrio absoluto entre activos y pasivos, centralizando los flujos financieros de manera eficiente y automatizada.
+
+• Navegación: Avanzada de alto rendimiento.
+
+• Características Principales: Interfaz Corporativa Premium, Gestión de Libros Mayor y Diario con validación de partida doble, Scroll y Navegación Fluida, Módulos de Auditoría Fiscal en tiempo real.
+
+• Stack Tecnológico:
+
+  • Frontend: HTML5, CSS3, JavaScript (ES6+).
+
+  • Backend/Lógica: Python / Node.js.
+
+  • Base de Datos: PostgreSQL / MySQL.
+
+• Reglas de Diseño: Libro diario escribe, nunca float, correcciones mediante reversión, modelo de cuentas jerárquico con control por tercero y soporte para módulos futuros (compras, nómina).
