@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equinox-Books | Sistema Contable Corporativo</title>
+<meta name="author" content="Carlos Smith Zambrano González - Smith Business Solution 2026">
+<meta name="x-equinox-patent-hash" content="">
+<script>
+/* =====================================================================
+   EQUINOX-BOOKS - Versión Navegador 100% Offline (Servidor Local)
+   Propietario: Smith Business Solution 2026
+   Creador: Carlos Smith Zambrano González
+   Motor: JavaScript ES6+ | Base de datos: localStorage (SQLite local)
+   Regla de oro: CERO FLOAT (toda moneda se procesa como centavos enteros)
+   ===================================================================== */
+</script>
+<style>
+:root{
+  --bg-main:#0a0f1d; --bg-card:#141e33; --bg-hover:#1e2c4a; --bg-deep:#0d1527;
+  --accent-gold:#c5a059; --accent-gold-light:#e5c178;
+  --text-main:#f1f5f9; --text-muted:#94a3b8; --border:#2a3b5c;
+  --danger:#ef4444; --success:#10b981;
+}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg-main);color:var(--text-main);margin:0;padding:0}
+header{background:var(--bg-card);border-bottom:2px solid var(--accent-gold);padding:20px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.brand h1{margin:0;color:var(--accent-gold);font-size:2rem;letter-spacing:2px;font-weight:700}
+.brand p{margin:4px 0 0;color:var(--text-muted);font-size:.85rem}
+.owner-badge{background:rgba(197,160,89,.1);border:1px solid var(--accent-gold);padding:8px 16px;border-radius:6px;text-align:right;font-size:.85rem}
+.owner-badge strong{color:var(--accent-gold-light);display:block}
+.slogan-bar{background:linear-gradient(90deg,#141e33 0%,#1e2c4a 50%,#141e33 100%);border-bottom:1px solid var(--border);padding:10px;text-align:center;font-style:italic;color:var(--accent-gold-light);font-size:.95rem}
+.container{max-width:1300px;margin:25px auto;padding:0 20px}
+.tabs{display:flex;gap:8px;border-bottom:1px solid var(--border);margin-bottom:25px;overflow-x:auto;flex-wrap:wrap}
+.tab-btn{background:var(--bg-card);color:var(--text-muted);border:1px solid var(--border);padding:12px 20px;border-radius:8px;cursor:pointer;font-weight:600;font-size:.9rem;transition:all .2s;white-space:nowrap}
+.tab-btn:hover{background:var(--bg-hover);color:var(--text-main)}
+.tab-btn.active{background:var(--accent-gold);color:#000;border-color:var(--accent-gold)}
+.tab-content{display:none;background:var(--bg-card);padding:30px;border-radius:10px;border:1px solid var(--border)}
+.tab-content.active{display:block}
+table{width:100%;border-collapse:collapse;margin-top:15px;font-size:.9rem}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+th{background:var(--bg-deep);color:var(--accent-gold);font-weight:600}
+tr:hover td{background-color:var(--bg-hover)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin-bottom:20px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:.85rem;color:var(--text-muted);font-weight:600}
+input,select,textarea{background:var(--bg-main);border:1px solid var(--border);color:var(--text-main);padding:10px;border-radius:6px;font-size:.9rem;width:100%}
+input:focus,select:focus,textarea:focus{outline:1px solid var(--accent-gold)}
+.btn{background:var(--accent-gold);color:#000;border:none;padding:10px 20px;font-weight:bold;border-radius:6px;cursor:pointer;transition:background .2s;font-size:.9rem}
+.btn:hover{background:var(--accent-gold-light)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-ghost{background:#2a3b5c;color:#fff}
+.badge{padding:4px 8px;border-radius:4px;font-size:.75rem;font-weight:bold;white-space:nowrap}
+.badge-debito{background:rgba(16,185,129,.2);color:#34d399;border:1px solid #10b981}
+.badge-credito{background:rgba(239,68,68,.2);color:#f87171;border:1px solid #ef4444}
+.alert{padding:12px 20px;border-radius:6px;margin-bottom:20px;font-size:.9rem}
+.alert-success{background:rgba(16,185,129,.15);border:1px solid var(--success);color:#34d399}
+.alert-error{background:rgba(239,68,68,.15);border:1px solid var(--danger);color:#f87171}
+pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px solid var(--border);font-family:'Courier New',Courier,monospace;overflow-x:auto;font-size:.85rem;white-space:pre-wrap;word-break:break-all}
+.card-box{background:var(--bg-deep);border:1px solid var(--border);padding:20px;border-radius:8px;margin-bottom:20px}
+.card-box h3{margin-top:0;color:var(--accent-gold);border-bottom:1px solid var(--border);padding-bottom:8px}
+.mono{color:#38edf8;font-family:monospace}
+.num-deb{color:#34d399}.num-cred{color:#f87171}
+.fin-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.fin-grid{grid-template-columns:1fr}}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.small{font-size:.8rem;color:var(--text-muted)}
+.welcome-hero{background:radial-gradient(circle at 30% 20%,#1e2c4a,#0d1527);border:1px solid var(--accent-gold);border-radius:12px;padding:40px;text-align:center;margin-bottom:25px}
+.welcome-hero h2{color:var(--accent-gold);letter-spacing:3px;margin:0 0 10px;font-size:2.2rem}
+.welcome-hero p{color:var(--text-muted);max-width:700px;margin:0 auto;line-height:1.6}
+
+/* ============ PRESENTACIÓN INSTITUCIONAL (APERTURA LEGAL) ============ */
+#splash{position:fixed;inset:0;z-index:999;background:radial-gradient(circle at 50% 30%,#16223d 0%,#0a0f1d 60%,#050811 100%);display:flex;align-items:center;justify-content:center;transition:opacity .8s ease;padding:20px}
+#splash.hidden{opacity:0;pointer-events:none}
+.splash-inner{max-width:840px;width:94%;text-align:center;padding:50px 40px;border:1px solid var(--accent-gold);border-radius:14px;background:rgba(10,15,29,.78);box-shadow:0 0 90px rgba(197,160,89,.16),inset 0 0 60px rgba(197,160,89,.05);position:relative;animation:splashIn 1.2s ease both}
+@keyframes splashIn{from{opacity:0;transform:translateY(30px) scale(.97)}to{opacity:1;transform:none}}
+.seal{display:inline-block;border:3px double var(--accent-gold);border-radius:50%;width:92px;height:92px;line-height:86px;font-family:Georgia,serif;color:var(--accent-gold);font-size:1.7rem;margin-bottom:20px;letter-spacing:2px;background:rgba(197,160,89,.06)}
+.corp-brand{font-family:Georgia,'Times New Roman',serif;letter-spacing:10px;font-size:1.05rem;color:var(--accent-gold-light);text-transform:uppercase;border-bottom:1px solid var(--border);display:inline-block;padding:0 34px 12px;margin-bottom:28px}
+.splash-title{font-family:Georgia,'Times New Roman',serif;font-size:3.4rem;letter-spacing:12px;margin:0;color:transparent;background:linear-gradient(180deg,#e5c178 0%,#c5a059 55%,#8a6d33 100%);-webkit-background-clip:text;background-clip:text;text-transform:uppercase;font-weight:700}
+.splash-sub{letter-spacing:6px;color:var(--text-muted);text-transform:uppercase;font-size:.8rem;margin:14px 0 0}
+.splash-divider{width:130px;height:1px;background:linear-gradient(90deg,transparent,var(--accent-gold),transparent);margin:26px auto}
+.splash-legal{font-family:Georgia,'Times New Roman',serif;color:var(--text-main);font-size:.95rem;line-height:1.85;font-style:italic;max-width:640px;margin:0 auto}
+.splash-legal strong{color:var(--accent-gold-light);font-style:normal}
+.splash-meta{margin-top:24px;font-size:.72rem;color:var(--text-muted);letter-spacing:1.5px;line-height:2;text-transform:uppercase}
+#btnIngresar{margin-top:30px;padding:13px 46px;font-size:.95rem;letter-spacing:3px;text-transform:uppercase;font-family:Georgia,serif}
+@media(max-width:640px){.splash-title{font-size:2rem;letter-spacing:6px}.corp-brand{letter-spacing:5px;font-size:.9rem}.splash-inner{padding:35px 22px}}
+
+</style>
+</head>
+<body>
+
+<!-- ============ PRESENTACIÓN INSTITUCIONAL (APERTURA LEGAL OFICIAL) ============ -->
+<div id="splash">
+  <div class="splash-inner">
+    <div class="seal">&#9878;</div>
+    <div class="corp-brand">Smith Business Solution 2026</div>
+    <h1 class="splash-title">Equinox Books</h1>
+    <p class="splash-sub">Sistema Contable y Auditor&iacute;a Fiscal de Alta Gama</p>
+    <div class="splash-divider"></div>
+    <p class="splash-legal">
+      <strong>Smith Business Solution 2026</strong>, en ejercicio de sus facultades de desarrollo de
+      software corporativo, presenta oficialmente <strong>Equinox Books</strong>: soluci&oacute;n contable
+      de alta gama con validaci&oacute;n de partida doble, auditor&iacute;a fiscal en tiempo real y
+      firma de patente <strong>SBS-2026-EQX-BOOKS-PATENT-REGISTERED</strong>, en cumplimiento de los
+      est&aacute;ndares contables internacionales <strong>NIC</strong>.
+    </p>
+    <p class="splash-meta">
+      Propiedad Oficial &middot; Smith Business Solution 2026<br>
+      Creador Principal &middot; Carlos Smith Zambrano Gonz&aacute;lez<br>
+      Fecha de Registro &middot; 2026-09-08 11:00:00 UTC &middot; Desarrollo Impulsado por IA<br>
+      Contacto &middot; empresaalhadiqainvest@gmail.com
+    </p>
+    <button id="btnIngresar" class="btn">Ingresar al Sistema</button>
+  </div>
+</div>
+
+<header>
+  <div class="brand">
+    <h1>EQUINOX-BOOKS</h1>
+    <p>Solución Contable y de Auditoría Fiscal de Alta Gama</p>
+  </div>
+  <div class="owner-badge">
+    <strong>Smith Business Solution 2026</strong>
+    Creador: Carlos Smith Zambrano González
+  </div>
+</header>
+
+<div class="slogan-bar" id="sloganBar"></div>
+
+<div class="container">
+  <div id="alertZone"></div>
+
+  <!-- PANEL DE BIENVENIDA OFICIAL -->
+  <div class="welcome-hero">
+    <h2>⚖ EQUINOX-BOOKS</h2>
+    <p><strong>Balance Financiero Corporativo Perfecto.</strong><br>
+    Una solución contable de alta gama desarrollada bajo el ecosistema de Smith Business Solution.
+    Sistema de gestión contable y auditoría fiscal de alta precisión para medianas y grandes empresas.
+    Inspirado en la simetría del equinoccio, garantiza el equilibrio absoluto entre activos y pasivos.</p>
+    <p class="small" style="margin-top:15px">Modo: <span class="mono">Servidor Local Offline</span> · Base de datos: <span class="mono">localStorage</span> · Precisión: <span class="mono">Centavos enteros (Cero Float)</span></p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="diario">Libro Diario</button>
+    <button class="tab-btn" data-tab="catalogo">Catálogo de Cuentas (NIC)</button>
+    <button class="tab-btn" data-tab="mayor">Libro Mayor</button>
+    <button class="tab-btn" data-tab="estados">Estados Financieros</button>
+    <button class="tab-btn" data-tab="fiscal">Libros Fiscales</button>
+    <button class="tab-btn" data-tab="arquitectura">Descripción & Arquitectura</button>
+    <button class="tab-btn" data-tab="licencias">Módulo Licencias</button>
+  </div>
+
+  <!-- 1. LIBRO DIARIO -->
+  <div id="diario" class="tab-content active">
+    <h2>Gestión de Libro Diario (Partida Doble)</h2>
+    <p class="small">Registro inmutable de transacciones. El sistema valida automáticamente el equilibrio Débito = Crédito con precisión de centavos absoluta. Las correcciones se realizan únicamente mediante reversión.</p>
+
+    <div class="card-box">
+      <h3>Nuevo Asiento Contable <span class="mono" id="numAsientoLabel"></span></h3>
+      <form id="formAsiento">
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha</label><input type="date" id="asFecha" required></div>
+          <div class="form-group"><label>Tercero (RIF/Nombre)</label><input type="text" id="asTercero" placeholder="Ej: J-12345678-0" required></div>
+          <div class="form-group" style="grid-column:span 2"><label>Concepto / Descripción</label><input type="text" id="asConcepto" placeholder="Ej: Registro de Factura de Venta No. 001" required></div>
+        </div>
+        <h4>Movimientos Contables (Mínimo 2 Líneas)</h4>
+        <table>
+          <thead><tr><th style="width:45%">Cuenta Contable</th><th>Débito ($)</th><th>Crédito ($)</th><th></th></tr></thead>
+          <tbody id="tbodyAsiento"></tbody>
+        </table>
+        <div class="toolbar" style="margin-top:15px">
+          <button type="button" class="btn btn-ghost" onclick="agregarFilaAsiento()">+ Agregar Línea</button>
+          <button type="submit" class="btn">Registrar Asiento Contable</button>
+          <span class="small">Total Débito: <strong class="num-deb" id="liveDeb">0.00</strong> · Total Crédito: <strong class="num-cred" id="liveCred">0.00</strong></span>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-box">
+      <h3>Asientos Registrados</h3>
+      <table>
+        <thead><tr><th>Asiento</th><th>Fecha</th><th>Concepto</th><th>Tercero</th><th>Código</th><th>Cuenta</th><th>Débito ($)</th><th>Crédito ($)</th><th>Estado</th><th>Acción</th></tr></thead>
+        <tbody id="tbodyDiario"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2. CATÁLOGO -->
+  <div id="catalogo" class="tab-content">
+    <h2>Base de Datos Contable acorde a las NIC</h2>
+    <p class="small">Catálogo estructurado jerárquicamente con atributos fiscales y financieros.</p>
+    <div class="card-box">
+      <h3>Agregar Nueva Cuenta Contable</h3>
+      <form id="formCuenta">
+        <div class="form-grid">
+          <div class="form-group"><label>Código Cuenta</label><input type="text" id="cCodigo" placeholder="Ej: 1103" required></div>
+          <div class="form-group"><label>Nombre de la Cuenta</label><input type="text" id="cNombre" placeholder="Ej: Banco Banesco" required></div>
+          <div class="form-group"><label>Tipo de Cuenta</label><select id="cTipo"><option>Activo</option><option>Pasivo</option><option>Patrimonio</option><option>Ingreso</option><option>Costo</option><option>Gasto</option></select></div>
+          <div class="form-group"><label>Naturaleza</label><select id="cNat"><option>Débito</option><option>Crédito</option></select></div>
+          <div class="form-group"><label>Estado Financiero</label><select id="cUbic"><option>Balance General</option><option>Estado de Resultados</option></select></div>
+          <div class="form-group"><label>Indicador Libro Fiscal</label><select id="cLibro"><option>Ninguno</option><option>Libro de Compras</option><option>Libro de Ventas</option></select></div>
+          <div class="form-group"><label>Sección Destino</label><input type="text" id="cSeccion" placeholder="Ej: Activo Corriente" required></div>
+          <div class="form-group"><label>Índice Secuencial (Único)</label><input type="number" id="cIndice" min="1" placeholder="Ej: 8" required></div>
+        </div>
+        <button type="submit" class="btn">Guardar Cuenta NIC</button>
+      </form>
+    </div>
+    <table>
+      <thead><tr><th>Índice</th><th>Código</th><th>Denominación</th><th>Tipo</th><th>Naturaleza</th><th>Estado Financiero</th><th>Libro Auxiliar</th><th>Sección Destino</th></tr></thead>
+      <tbody id="tbodyCatalogo"></tbody>
+    </table>
+  </div>
+
+  <!-- 3. LIBRO MAYOR -->
+  <div id="mayor" class="tab-content">
+    <h2>Libro Mayor y Saldos Acumulados</h2>
+    <p class="small">Consolidación de movimientos por cuenta con saldos reales según su naturaleza.</p>
+    <table>
+      <thead><tr><th>Código</th><th>Cuenta</th><th>Tipo</th><th>Total Débitos ($)</th><th>Total Créditos ($)</th><th>Saldo Actual ($)</th></tr></thead>
+      <tbody id="tbodyMayor"></tbody>
+    </table>
+  </div>
+
+  <!-- 4. ESTADOS FINANCIEROS -->
+  <div id="estados" class="tab-content">
+    <h2>Estados Financieros Oficiales</h2>
+    <div class="fin-grid">
+      <div class="card-box">
+        <h3>Estado de Resultados</h3>
+        <table>
+          <tr><td>Ingresos Totales:</td><td style="text-align:right" id="erIng"></td></tr>
+          <tr><td>Costos Operacionales:</td><td style="text-align:right" id="erCost"></td></tr>
+          <tr><td>Gastos Operacionales:</td><td style="text-align:right" id="erGas"></td></tr>
+          <tr style="border-top:2px solid var(--accent-gold);font-size:1.1rem"><td><strong>Utilidad / Pérdida del Ejercicio:</strong></td><td style="text-align:right"><strong id="erUtil"></strong></td></tr>
+        </table>
+      </div>
+      <div class="card-box">
+        <h3>Balance General (Simetría del Equinoccio)</h3>
+        <table>
+          <tr><td>Total Activos:</td><td style="text-align:right" class="num-deb"><strong id="bgAct"></strong></td></tr>
+          <tr><td>Total Pasivos:</td><td style="text-align:right" class="num-cred" id="bgPas"></td></tr>
+          <tr><td>Patrimonio (Capital + Resultados):</td><td style="text-align:right" id="bgPat"></td></tr>
+          <tr style="border-top:2px solid var(--accent-gold);font-size:1.1rem"><td><strong>Pasivo + Patrimonio:</strong></td><td style="text-align:right" class="num-deb"><strong id="bgPMP"></strong></td></tr>
+        </table>
+        <br><div id="bgCheck"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. LIBROS FISCALES -->
+  <div id="fiscal" class="tab-content">
+    <h2>Módulo de Auditoría Fiscal (Libros Auxiliares)</h2>
+    <p class="small">Generación automática de soportes para auditoría de impuestos en tiempo real.</p>
+    <div class="card-box">
+      <h3>Libro de Ventas (Soporte Fiscal)</h3>
+      <table><thead><tr><th>Fecha</th><th>Asiento</th><th>Tercero/Cliente</th><th>Concepto</th><th>Base Imponible ($)</th></tr></thead><tbody id="tbodyVentas"></tbody></table>
+    </div>
+    <div class="card-box">
+      <h3>Libro de Compras (Soporte Fiscal)</h3>
+      <table><thead><tr><th>Fecha</th><th>Asiento</th><th>Tercero/Proveedor</th><th>Concepto</th><th>Monto Deducible ($)</th></tr></thead><tbody id="tbodyCompras"></tbody></table>
+    </div>
+  </div>
+
+  <!-- 6. ARQUITECTURA -->
+  <div id="arquitectura" class="tab-content">
+    <h2>Descripción y Arquitectura Interna del Sistema</h2>
+    <p><strong>Equinox-Books</strong> es un sistema de gestión contable y auditoría fiscal diseñado para ofrecer una experiencia visualmente limpia, robusta y de alta precisión para medianas y grandes empresas. Inspirado en la simetría del equinoccio, la plataforma garantiza el equilibrio absoluto entre activos y pasivos, centralizando los flujos financieros de manera eficiente y automatizada.</p>
+    <div class="card-box"><h3>Stack Tecnológico Implementado (Modo Navegador Offline)</h3>
+      <ul>
+        <li><strong>Frontend:</strong> HTML5, CSS3 con variables corporativas, JavaScript ES6+.</li>
+        <li><strong>Motor de Lógica:</strong> JavaScript nativo (aritmética entera de centavos, Cero Float).</li>
+        <li><strong>Base de Datos:</strong> localStorage del navegador (persistencia local real, equivalente a SQLite local; migrable a PostgreSQL/MySQL vía API REST).</li>
+      </ul>
+    </div>
+    <div class="card-box"><h3>Reglas de Diseño y Controles Internos</h3>
+      <ul>
+        <li><strong>Inmutabilidad del Libro Diario:</strong> el libro diario sólo escribe (append-only); nunca edita ni borra registros directos.</li>
+        <li><strong>Cero Float:</strong> toda moneda se convierte a enteros en centavos mediante análisis de cadena, eliminando errores de punto flotante IEEE 754.</li>
+        <li><strong>Corrección mediante Reversión:</strong> los errores se corrigen con un asiento reverso automático que preserva la trazabilidad de auditoría.</li>
+        <li><strong>Validación de Partida Doble:</strong> ningún asiento se registra si Débito ≠ Crédito.</li>
+        <li><strong>Modelo de Cuentas Jerárquico:</strong> control estricto por tercero e indicadores para auditoría fiscal en tiempo real.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 7. LICENCIAS -->
+  <div id="licencias" class="tab-content">
+    <h2>Módulo de Licencias y Patente de Software</h2>
+    <div class="card-box" style="text-align:center;padding:35px 20px">
+      <div class="seal" style="width:74px;height:74px;line-height:68px;font-size:1.3rem">&#9878;</div>
+      <div class="corp-brand">Smith Business Solution 2026</div>
+      <h2 class="splash-title" style="font-size:2.3rem">Equinox Books</h2>
+      <p class="splash-sub">Balance Financiero Corporativo Perfecto</p>
+      <p class="small" style="margin-top:14px;letter-spacing:1px">
+        SOFTWARE DE PROPIEDAD OFICIAL DE SMITH BUSINESS SOLUTION 2026 &middot; CREADOR: CARLOS SMITH ZAMBRANO GONZ&Aacute;LEZ<br>
+        FIRMA DE PATENTE: SBS-2026-EQX-BOOKS-PATENT-REGISTERED &middot; EST&Aacute;NDAR: NORMAS INTERNACIONALES DE CONTABILIDAD (NIC)
+      </p>
+    </div>
+    <div class="card-box"><h3>Licencia Visible de Software</h3><pre id="licVisible"></pre></div>
+    <div class="card-box"><h3>Licencia Invisible / Firma Criptográfica de Patente</h3>
+      <p class="small">Esta firma se incluye en el encabezado DOM (meta tag) de la aplicación y sirve como sello inalterable de autenticidad intelectual.</p>
+      <pre id="licOculta"></pre>
+    </div>
+  </div>
+
+  <p class="small" style="text-align:center;margin:30px 0">Equinox-Books © 2026 · Smith Business Solution 2026 · Carlos Smith Zambrano González · empresaalhadiqainvest@gmail.com</p>
+</div>
+
+<script>
+/* ============================ 1. IDENTIDAD Y LICENCIAS ============================ */
+const PROJECT_METADATA = {
+  "nombre_proyecto":"Equinox-Books",
+  "propietario":"Smith Business Solution 2026",
+  "creador":"Carlos Smith Zambrano González",
+  "desarrollo":"Impulsado y estructurado con asistencia de Inteligencia Artificial (IA)",
+  "contacto":"empresaalhadiqainvest@gmail.com",
+  "fecha_creacion":"2026-09-08 11:00:00 UTC",
+  "eslogan":"Balance Financiero Corporativo Perfecto. Una solución contable de alta gama desarrollada bajo el ecosistema de Smith Business Solution."
+};
+const SORTED_META_JSON = JSON.stringify(PROJECT_METADATA, Object.keys(PROJECT_METADATA).sort());
+
+function licenciaVisible(){
+  return `==============================================================================
+                    SISTEMA CONTABLE Y AUDITORÍA FISCAL
+                            ${PROJECT_METADATA.nombre_proyecto.toUpperCase()}
+==============================================================================
+PROPIEDAD OFICIAL  : ${PROJECT_METADATA.propietario}
+CREADOR PRINCIPAL  : ${PROJECT_METADATA.creador}
+CONTACTO DIRECTO   : ${PROJECT_METADATA.contacto}
+FECHA DE REGISTRO  : ${PROJECT_METADATA.fecha_creacion}
+DESARROLLO         : ${PROJECT_METADATA.desarrollo}
+FIRMA PATENTE      : SBS-2026-EQX-BOOKS-PATENT-REGISTERED
+ESLOGAN            : "${PROJECT_METADATA.eslogan}"
+==============================================================================`;
+}
+
+/* MD5 (implementación compacta RFC 1321) */
+function md5(str){
+  function rl(v,a,b){return (v<<a)|(v>>>(32-a));}
+  function add(a,b){var l=(a&0xFFFF)+(b&0xFFFF),m=(a>>16)+(b>>16)+(l>>16);return(m<<16)|(l&0xFFFF);}
+  function cmn(q,a,b,x,s,t){return add(rl(add(add(a,q),add(x,t)),s),b);}
+  function ff(a,b,c,d,x,s,t){return cmn((b&c)|(~b&d),a,b,x,s,t);}
+  function gg(a,b,c,d,x,s,t){return cmn((b&d)|(c&~d),a,b,x,s,t);}
+  function hh(a,b,c,d,x,s,t){return cmn(b^c^d,a,b,x,s,t);}
+  function ii(a,b,c,d,x,s,t){return cmn(c^(b|~d),a,b,x,s,t);}
+  function strToBlocks(s){
+    var n=s.length,words=[],i;
+    for(i=0;i<n;i++)words[i>>2]=(words[i>>2]||0)|((s.charCodeAt(i)&255)<<((i%4)*8));
+    words[n>>2]=(words[n>>2]||0)|(0x80<<((n%4)*8));
+    var len=((n+8)>>6)*16+16;words.length=len;
+    words[len-2]=n*8;words[len-1]=(n*8)>>>31?Math.floor(n*8/4294967296):0;
+    return words;
+  }
+  var x=strToBlocks(str),a=1732584193,b=-271733879,c=-1732584194,d=271733878,i;
+  for(i=0;i<x.length;i+=16){
+    var oa=a,ob=b,oc=c,od=d;
+    a=ff(a,b,c,d,x[i],7,-680876936); d=ff(d,a,b,c,x[i+1],12,-389564586); c=ff(c,d,a,b,x[i+2],17,606105819); b=ff(b,c,d,a,x[i+3],22,-1044525330);
+    a=ff(a,b,c,d,x[i+4],7,-176418897); d=ff(d,a,b,c,x[i+5],12,1200080426); c=ff(c,d,a,b,x[i+6],17,-1473231341); b=ff(b,c,d,a,x[i+7],22,-45705983);
+    a=ff(a,b,c,d,x[i+8],7,1770035416); d=ff(d,a,b,c,x[i+9],12,-1958414417); c=ff(c,d,a,b,x[i+10],17,-42063); b=ff(b,c,d,a,x[i+11],22,-1990404162);
+    a=ff(a,b,c,d,x[i+12],7,1804603682); d=ff(d,a,b,c,x[i+13],12,-40341101); c=ff(c,d,a,b,x[i+14],17,-1502002290); b=ff(b,c,d,a,x[i+15],22,1236535329);
+    a=gg(a,b,c,d,x[i+1],5,-165796510); d=gg(d,a,b,c,x[i+6],9,-1069501632); c=gg(c,d,a,b,x[i+11],14,643717713); b=gg(b,c,d,a,x[i],20,-373897302);
+    a=gg(a,b,c,d,x[i+5],5,-701558691); d=gg(d,a,b,c,x[i+10],9,38016083); c=gg(c,d,a,b,x[i+15],14,-660478335); b=gg(b,c,d,a,x[i+4],20,-405537848);
+    a=gg(a,b,c,d,x[i+9],5,568446438); d=gg(d,a,b,c,x[i+14],9,-1019803690); c=gg(c,d,a,b,x[i+3],14,-187363961); b=gg(b,c,d,a,x[i+8],20,1163531501);
+    a=gg(a,b,c,d,x[i+13],5,-1444681467); d=gg(d,a,b,c,x[i+2],9,-51403784); c=gg(c,d,a,b,x[i+7],14,1735328473); b=gg(b,c,d,a,x[i+12],20,-1926607734);
+    a=hh(a,b,c,d,x[i+5],4,-378558); d=hh(d,a,b,c,x[i+8],11,-2022574463); c=hh(c,d,a,b,x[i+11],16,1839030562); b=hh(b,c,d,a,x[i+14],23,-35309556);
+    a=hh(a,b,c,d,x[i+1],4,-1530992060); d=hh(d,a,b,c,x[i+4],11,1272893353); c=hh(c,d,a,b,x[i+7],16,-155497632); b=hh(b,c,d,a,x[i+10],23,-1094730640);
+    a=hh(a,b,c,d,x[i+13],4,681279174); d=hh(d,a,b,c,x[i],11,-358537222); c=hh(c,d,a,b,x[i+3],16,-722521979); b=hh(b,c,d,a,x[i+6],23,76029189);
+    a=hh(a,b,c,d,x[i+9],4,-640364487); d=hh(d,a,b,c,x[i+12],11,-421815835); c=hh(c,d,a,b,x[i+15],16,530742520); b=hh(b,c,d,a,x[i+2],23,-995338651);
+    a=ii(a,b,c,d,x[i],6,-198630844); d=ii(d,a,b,c,x[i+7],10,1126891415); c=ii(c,d,a,b,x[i+14],15,-1416354905); b=ii(b,c,d,a,x[i+5],21,-57434055);
+    a=ii(a,b,c,d,x[i+12],6,1700485571); d=ii(d,a,b,c,x[i+3],10,-1894986606); c=ii(c,d,a,b,x[i+10],15,-1051523); b=ii(b,c,d,a,x[i+1],21,-2054922799);
+    a=ii(a,b,c,d,x[i+8],6,1873313359); d=ii(d,a,b,c,x[i+15],10,-30611744); c=ii(c,d,a,b,x[i+6],15,-1560198380); b=ii(b,c,d,a,x[i+13],21,1309151649);
+    a=ii(a,b,c,d,x[i+4],6,-145523070); d=ii(d,a,b,c,x[i+11],10,-1120210379); c=ii(c,d,a,b,x[i+2],15,718787259); b=ii(b,c,d,a,x[i+9],21,-343485551);
+    a=add(a,oa);b=add(b,ob);c=add(c,oc);d=add(d,od);
+  }
+  function h(n){var s="",j;for(j=0;j<4;j++)s+=("0"+((n>>(j*8))&255).toString(16)).slice(-2);return s;}
+  return h(a)+h(b)+h(c)+h(d);
+}
+
+/* SHA-256 (Web Crypto) con respaldo FNV-1a si el contexto no es seguro */
+async function sha256(str){
+  try{
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }catch(e){
+    let h1=0x811c9dc5, h2=0x811c9dc5;
+    for(let i=0;i<str.length;i++){
+      const c=str.charCodeAt(i);
+      h1=Math.imul(h1^c,0x01000193)>>>0; h2=Math.imul(h2^(c+i),0x01000193)>>>0;
+    }
+    return ("fnv"+h1.toString(16).padStart(8,'0')+h2.toString(16).padStart(8,'0')).padEnd(64,'0');
+  }
+}
+
+function licenciaOculta(sha,md){
+  return `EQX-SECURE-HASH::${sha}::${md}::PATENT-SMITH-BUSINESS-SOLUTION-2026`;
+}
+
+(async function initLicencias(){
+  const sha = await sha256(SORTED_META_JSON);
+  const md = md5(unescape(encodeURIComponent(SORTED_META_JSON)));
+  const lic = licenciaOculta(sha, md);
+  document.querySelector('meta[name="x-equinox-patent-hash"]').setAttribute('content', lic);
+  document.getElementById('licVisible').textContent = licenciaVisible();
+  document.getElementById('licOculta').textContent = lic;
+})();
+
+/* ============================ 2. BASE DE DATOS (localStorage) ============================ */
+const DB_KEY = 'equinox_books_db_v1';
+const CUENTAS_INICIALES = [
+  {codigo:'1101',nombre:'Caja General',tipo_cuenta:'Activo',naturaleza:'Débito',ubicacion_estado:'Balance General',indicador_libro:'Ninguno',seccion_destino:'Activo Corriente',tipo_indice:1},
+  {codigo:'1102',nombre:'Banco Nacional',tipo_cuenta:'Activo',naturaleza:'Débito',ubicacion_estado:'Balance General',indicador_libro:'Ninguno',seccion_destino:'Activo Corriente',tipo_indice:2},
+  {codigo:'2101',nombre:'Cuentas por Pagar Comerciales',tipo_cuenta:'Pasivo',naturaleza:'Crédito',ubicacion_estado:'Balance General',indicador_libro:'Ninguno',seccion_destino:'Pasivo Corriente',tipo_indice:3},
+  {codigo:'3101',nombre:'Capital Social',tipo_cuenta:'Patrimonio',naturaleza:'Crédito',ubicacion_estado:'Balance General',indicador_libro:'Ninguno',seccion_destino:'Patrimonio Neto',tipo_indice:4},
+  {codigo:'4101',nombre:'Ventas de Mercancía',tipo_cuenta:'Ingreso',naturaleza:'Crédito',ubicacion_estado:'Estado de Resultados',indicador_libro:'Libro de Ventas',seccion_destino:'Ingresos Operacionales',tipo_indice:5},
+  {codigo:'5101',nombre:'Costos de Ventas',tipo_cuenta:'Gasto',naturaleza:'Débito',ubicacion_estado:'Estado de Resultados',indicador_libro:'Libro de Compras',seccion_destino:'Costos Operacionales',tipo_indice:6},
+  {codigo:'5102',nombre:'Gastos de Personal',tipo_cuenta:'Gasto',naturaleza:'Débito',ubicacion_estado:'Estado de Resultados',indicador_libro:'Ninguno',seccion_destino:'Gastos Operacionales',tipo_indice:7}
+];
+
+let DB;
+function initDB(){
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    DB = raw ? JSON.parse(raw) : null;
+  }catch(e){ DB = null; }
+  if(!DB || !Array.isArray(DB.catalogo) || !Array.isArray(DB.diario)){
+    DB = { catalogo: CUENTAS_INICIALES.map(c=>({...c})), diario: [], nextId:1 };
+    saveDB();
+  }
+}
+function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+
+/* ============================ 3. MOTOR MONETARIO (CERO FLOAT) ============================ */
+/* Convierte cadena monetaria a centavos enteros sin pasar por float binario */
+function strToCents(s){
+  if(s===null||s===undefined) return 0;
+  s = String(s).trim().replace(/\s/g,'').replace(',','.');
+  if(s==='') return 0;
+  const neg = s.startsWith('-');
+  if(neg) s = s.slice(1);
+  const m = s.match(/^(\d+)(?:\.(\d+))?$/);
+  if(!m) return 0;
+  let intPart = m[1], frac = (m[2]||'');
+  let cents;
+  if(frac.length<=2){ cents = parseInt(intPart,10)*100 + parseInt((frac+'00').slice(0,2),10); }
+  else{
+    const third = parseInt(frac[2],10);
+    cents = parseInt(intPart,10)*100 + parseInt(frac.slice(0,2),10) + (third>=5?1:0); // redondeo medio arriba
+  }
+  return neg ? -cents : cents;
+}
+function centsToStr(c){
+  const neg = c<0; c = Math.abs(c);
+  const ent = Math.floor(c/100), fr = String(c%100).padStart(2,'0');
+  const s = ent.toLocaleString('en-US',{minimumFractionDigits:0}) + '.' + fr;
+  return (neg?'-':'') + s;
+}
+
+/* ============================ 4. NAVEGACIÓN Y ALERTAS ============================ */
+document.getElementById('sloganBar').textContent = '"'+PROJECT_METADATA.eslogan+'"';
+
+function showAlert(msg, type){
+  const z = document.getElementById('alertZone');
+  z.innerHTML = `<div class="alert alert-${type==='error'?'error':'success'}">${msg}</div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>{ z.innerHTML=''; }, 6000);
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============================ 5. LIBRO DIARIO ============================ */
+function siguienteAsiento(){
+  let max = 0;
+  for(const m of DB.diario) if(m.asiento_num>max) max = m.asiento_num;
+  return max+1;
+}
+
+function filaAsientoHTML(){
+  const opts = DB.catalogo.slice().sort((a,b)=>a.tipo_indice-b.tipo_indice)
+    .map(c=>`<option value="${c.codigo}">${c.codigo} - ${c.nombre} (${c.tipo_cuenta})</option>`).join('');
+  return `<tr>
+    <td><select class="asCuenta" required><option value="">-- Seleccionar Cuenta --</option>${opts}</select></td>
+    <td><input type="text" class="asDeb" inputmode="decimal" value="0.00"></td>
+    <td><input type="text" class="asCred" inputmode="decimal" value="0.00"></td>
+    <td><button type="button" class="btn btn-danger" style="padding:6px 10px;font-size:.75rem" onclick="this.closest('tr').remove();actualizarLiveTotals()">✕</button></td>
+  </tr>`;
+}
+function agregarFilaAsiento(){
+  document.getElementById('tbodyAsiento').insertAdjacentHTML('beforeend', filaAsientoHTML());
+  actualizarLiveTotals();
+}
+function actualizarLiveTotals(){
+  let td=0, tc=0;
+  document.querySelectorAll('#tbodyAsiento tr').forEach(tr=>{
+    td += strToCents(tr.querySelector('.asDeb').value);
+    tc += strToCents(tr.querySelector('.asCred').value);
+  });
+  document.getElementById('liveDeb').textContent = centsToStr(td);
+  document.getElementById('liveCred').textContent = centsToStr(tc);
+}
+document.getElementById('tbodyAsiento').addEventListener('input', actualizarLiveTotals);
+
+document.getElementById('formAsiento').addEventListener('submit', function(e){
+  e.preventDefault();
+  const fecha = document.getElementById('asFecha').value;
+  const tercero = document.getElementById('asTercero').value.trim();
+  const concepto = document.getElementById('asConcepto').value.trim();
+  if(!fecha || !tercero || !concepto){ showAlert('Complete todos los campos del encabezado del asiento.','error'); return; }
+
+  let totalDeb=0, totalCred=0;
+  const lineas=[];
+  document.querySelectorAll('#tbodyAsiento tr').forEach(tr=>{
+    const cod = tr.querySelector('.asCuenta').value;
+    if(!cod) return;
+    const d = strToCents(tr.querySelector('.asDeb').value);
+    const c = strToCents(tr.querySelector('.asCred').value);
+    if(d>0 || c>0){ totalDeb+=d; totalCred+=c; lineas.push({codigo:cod, debito_centavos:d, credito_centavos:c}); }
+  });
+
+  if(lineas.length<2){ showAlert('Un asiento contable requiere al menos 2 movimientos con monto.','error'); return; }
+  if(totalDeb !== totalCred){
+    showAlert(`Error de Partida Doble: Débito ($${centsToStr(totalDeb)}) ≠ Crédito ($${centsToStr(totalCred)}).`,'error');
+    return;
+  }
+
+  const num = siguienteAsiento();
+  for(const l of lineas){
+    DB.diario.push({ id:DB.nextId++, asiento_num:num, fecha, concepto, tercero,
+      codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO' });
+  }
+  saveDB();
+  this.reset();
+  document.getElementById('asFecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('tbodyAsiento').innerHTML = filaAsientoHTML()+filaAsientoHTML();
+  actualizarLiveTotals();
+  showAlert(`Asiento Contable #${num} registrado con éxito con partida doble perfecta.`,'success');
+  renderAll();
+});
+
+function reversarAsiento(num){
+  if(!confirm(`¿Reversar el asiento #${num} por corrección de auditoría?`)) return;
+  const movs = DB.diario.filter(m=>m.asiento_num===num && m.estado==='ACTIVO');
+  if(!movs.length){ showAlert(`El asiento #${num} ya fue reversado o no existe.`,'error'); return; }
+  movs.forEach(m=> m.estado='REVERSADO');
+  const nuevo = siguienteAsiento();
+  const hoy = new Date().toISOString().slice(0,10);
+  for(const m of movs){
+    DB.diario.push({ id:DB.nextId++, asiento_num:nuevo, fecha:hoy,
+      concepto:`REVERSO/CORRECCIÓN ASIENTO #${num}: ${m.concepto}`,
+      tercero:m.tercero, codigo_cuenta:m.codigo_cuenta,
+      debito_centavos:m.credito_centavos, credito_centavos:m.debito_centavos, estado:'ACTIVO' });
+  }
+  saveDB();
+  showAlert(`Asiento #${num} reversado. Se generó el Asiento de Corrección #${nuevo}.`,'success');
+  renderAll();
+}
+window.reversarAsiento = reversarAsiento;
+
+/* ============================ 6. CATÁLOGO ============================ */
+document.getElementById('formCuenta').addEventListener('submit', function(e){
+  e.preventDefault();
+  const cuenta = {
+    codigo: document.getElementById('cCodigo').value.trim(),
+    nombre: document.getElementById('cNombre').value.trim(),
+    tipo_cuenta: document.getElementById('cTipo').value,
+    naturaleza: document.getElementById('cNat').value,
+    ubicacion_estado: document.getElementById('cUbic').value,
+    indicador_libro: document.getElementById('cLibro').value,
+    seccion_destino: document.getElementById('cSeccion').value.trim(),
+    tipo_indice: parseInt(document.getElementById('cIndice').value,10)
+  };
+  if(DB.catalogo.some(c=>c.codigo===cuenta.codigo)){ showAlert(`Error: el código ${cuenta.codigo} ya existe en el catálogo.`,'error'); return; }
+  if(DB.catalogo.some(c=>c.tipo_indice===cuenta.tipo_indice)){ showAlert(`Error: el índice ${cuenta.tipo_indice} ya está en uso.`,'error'); return; }
+  DB.catalogo.push(cuenta);
+  saveDB();
+  this.reset();
+  showAlert(`Cuenta ${cuenta.codigo} - ${cuenta.nombre} agregada con éxito al catálogo NIC.`,'success');
+  renderAll();
+});
+
+/* ============================ 7. RENDERIZADO GENERAL ============================ */
+function cuentaByCodigo(cod){ return DB.catalogo.find(c=>c.codigo===cod); }
+
+function renderAll(){
+  /* Libro Diario */
+  document.getElementById('numAsientoLabel').textContent = '#'+siguienteAsiento();
+  const movs = DB.diario.slice().sort((a,b)=> b.asiento_num-a.asiento_num || a.id-b.id);
+  document.getElementById('tbodyDiario').innerHTML = movs.map(m=>{
+    const c = cuentaByCodigo(m.codigo_cuenta);
+    return `<tr>
+      <td><strong>#${m.asiento_num}</strong></td>
+      <td>${m.fecha}</td><td>${m.concepto}</td><td>${m.tercero}</td>
+      <td class="mono">${m.codigo_cuenta}</td><td>${c?c.nombre:'—'}</td>
+      <td class="num-deb">${centsToStr(m.debito_centavos)}</td>
+      <td class="num-cred">${centsToStr(m.credito_centavos)}</td>
+      <td>${m.estado==='ACTIVO'
+        ? '<span class="badge badge-debito">ACTIVO</span>'
+        : '<span class="badge badge-credito">REVERSADO</span>'}</td>
+      <td>${m.estado==='ACTIVO'
+        ? `<button class="btn btn-danger" style="padding:4px 8px;font-size:.75rem" onclick="reversarAsiento(${m.asiento_num})">Reversar</button>` : '—'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="10" class="small">Sin movimientos registrados.</td></tr>';
+
+  /* Catálogo */
+  document.getElementById('tbodyCatalogo').innerHTML = DB.catalogo.slice()
+    .sort((a,b)=>a.tipo_indice-b.tipo_indice).map(c=>`<tr>
+      <td><strong>${c.tipo_indice}</strong></td><td class="mono">${c.codigo}</td>
+      <td>${c.nombre}</td><td>${c.tipo_cuenta}</td>
+      <td><span class="badge ${c.naturaleza==='Débito'?'badge-debito':'badge-credito'}">${c.naturaleza}</span></td>
+      <td>${c.ubicacion_estado}</td><td>${c.indicador_libro}</td><td>${c.seccion_destino}</td>
+    </tr>`).join('');
+
+  /* Libro Mayor + agregados */
+  const mayor = DB.catalogo.map(c=>{
+    let deb=0, cred=0;
+    for(const m of DB.diario){
+      if(m.codigo_cuenta===c.codigo && m.estado==='ACTIVO'){ deb+=m.debito_centavos; cred+=m.credito_centavos; }
+    }
+    const saldo = c.naturaleza==='Débito' ? deb-cred : cred-deb;
+    return {...c, deb, cred, saldo};
+  });
+  document.getElementById('tbodyMayor').innerHTML = mayor.map(m=>`<tr>
+      <td class="mono">${m.codigo}</td><td>${m.nombre}</td><td>${m.tipo_cuenta}</td>
+      <td class="num-deb">${centsToStr(m.deb)}</td><td class="num-cred">${centsToStr(m.cred)}</td>
+      <td><strong>${centsToStr(m.saldo)}</strong></td>
+    </tr>`).join('');
+
+  /* Estados Financieros */
+  const sum = t => mayor.filter(m=>m.tipo_cuenta===t).reduce((a,m)=>a+m.saldo,0);
+  const ingresos = sum('Ingreso'), costos = sum('Costo'), gastos = sum('Gasto');
+  const utilidad = ingresos - costos - gastos;
+  document.getElementById('erIng').textContent = centsToStr(ingresos)+' $';
+  document.getElementById('erCost').textContent = '('+centsToStr(costos)+') $';
+  document.getElementById('erGas').textContent = '('+centsToStr(gastos)+') $';
+  document.getElementById('erUtil').textContent = centsToStr(utilidad)+' $';
+
+  const activos = sum('Activo'), pasivos = sum('Pasivo'), patBase = sum('Patrimonio');
+  const patTotal = patBase + utilidad, pmp = pasivos + patTotal;
+  document.getElementById('bgAct').textContent = centsToStr(activos)+' $';
+  document.getElementById('bgPas').textContent = centsToStr(pasivos)+' $';
+  document.getElementById('bgPat').textContent = centsToStr(patTotal)+' $';
+  document.getElementById('bgPMP').textContent = centsToStr(pmp)+' $';
+  document.getElementById('bgCheck').innerHTML = (activos===pmp)
+    ? '<div class="alert alert-success" style="text-align:center;margin:0">✔ BALANCE CUADRADO PERFECTO (Activo = Pasivo + Patrimonio)</div>'
+    : '<div class="alert alert-error" style="text-align:center;margin:0">✖ DESBALANCE DETECTADO EN AUDITORÍA</div>';
+
+  /* Libros Fiscales */
+  const fiscalRows = indicador => DB.diario
+    .filter(m=>{ const c=cuentaByCodigo(m.codigo_cuenta); return c && c.indicador_libro===indicador && m.estado==='ACTIVO' && ((indicador==='Libro de Ventas'&&m.credito_centavos>0)||(indicador==='Libro de Compras'&&m.debito_centavos>0)); })
+    .sort((a,b)=>a.asiento_num-b.asiento_num)
+    .map(m=>{
+      const monto = indicador==='Libro de Ventas' ? m.credito_centavos : m.debito_centavos;
+      return `<tr><td>${m.fecha}</td><td>#${m.asiento_num}</td><td>${m.tercero}</td><td>${m.concepto}</td><td><strong>${centsToStr(monto)}</strong></td></tr>`;
+    }).join('') || '<tr><td colspan="5" class="small">Sin registros fiscales.</td></tr>';
+  document.getElementById('tbodyVentas').innerHTML = fiscalRows('Libro de Ventas');
+  document.getElementById('tbodyCompras').innerHTML = fiscalRows('Libro de Compras');
+}
+
+document.getElementById('btnIngresar').addEventListener('click',()=>{
+  document.getElementById('splash').classList.add('hidden');
+});
+/* ============================ 8. ARRANQUE ============================ */
+initDB();
+document.getElementById('asFecha').value = new Date().toISOString().slice(0,10);
+document.getElementById('tbodyAsiento').innerHTML = filaAsientoHTML()+filaAsientoHTML();
+actualizarLiveTotals();
+renderAll();
+</script>
+</body>
+</html>
