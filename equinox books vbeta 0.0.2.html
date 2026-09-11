@@ -1562,8 +1562,11 @@ document.getElementById('btnIngresar').addEventListener('click',()=>{
 });
 
 /* ARRANQUE */
-/* Vaciar memoria local para empezar desde cero: se elimina la clave de la BD antes de inicializar */
-localStorage.removeItem(DB_KEY);
+/* Reset controlado: elimina la base actual SOLO LA PRIMERA VEZ que se abre este archivo en este navegador/perfil. */
+if (!localStorage.getItem('equinox_books_reset_done')) {
+  localStorage.removeItem(DB_KEY);
+  localStorage.setItem('equinox_books_reset_done', '1');
+}
 initDB();
 document.getElementById('asFecha').value = new Date().toISOString().slice(0,10);
 document.getElementById('mFecha').value = new Date().toISOString().slice(0,10);
