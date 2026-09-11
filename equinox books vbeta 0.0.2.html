@@ -155,6 +155,7 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
     <button class="tab-btn" data-tab="mayor">Libro Mayor</button>
     <button class="tab-btn" data-tab="estados">Estados Financieros</button>
     <button class="tab-btn" data-tab="fiscal">Libros Fiscales</button>
+        <button class="tab-btn" data-tab="inventario">Libro de Inventario</button>
     <button class="tab-btn" data-tab="cierres">Cierres</button>
     <button class="tab-btn" data-tab="arquitectura">Descripción & Arquitectura</button>
     <button class="tab-btn" data-tab="licencias">Módulo Licencias</button>
@@ -204,14 +205,11 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
     <div class="card-box">
       <h3>Asientos Registrados</h3>
       <div class="toolbar" style="margin-top:10px">
-        <span class="small"><strong>Selecci&oacute;n:</strong></span>
-        <button class="btn btn-danger" style="padding:6px 12px;font-size:.8rem" onclick="reversarSeleccionados()">&#9851; Reversar seleccionados</button>
-        <span style="flex:1"></span>
         <select id="selAsiento" style="max-width:360px"></select>
         <button class="btn btn-ghost" style="padding:6px 12px;font-size:.8rem" onclick="cargarSeleccionado()">&#9998; Modificar asiento seleccionado</button>
       </div>
       <table>
-        <thead><tr><th style="width:34px"><input type="checkbox" id="chkAll" onchange="toggleTodos(this.checked)" title="Seleccionar todos"></th><th>Asiento</th><th>Fecha</th><th>TC (Bs$)</th><th>Concepto</th><th>Tercero</th><th>Código</th><th>Cuenta</th><th>Débito ($)</th><th>Crédito ($)</th><th>Estado</th><th>Acción</th></tr></thead>
+        <thead><tr><th>Asiento</th><th>Fecha</th><th>TC (Bs$)</th><th>Concepto</th><th>Tercero</th><th>Código</th><th>Cuenta</th><th>Débito ($)</th><th>Crédito ($)</th><th>Estado</th><th>Acción</th></tr></thead>
         <tbody id="tbodyDiario"></tbody>
       </table>
     </div>
@@ -227,7 +225,7 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
         <div class="form-grid">
           <div class="form-group"><label>Código Cuenta</label><input type="text" id="cCodigo" placeholder="Ej: 1103" required></div>
           <div class="form-group"><label>Nombre de la Cuenta</label><input type="text" id="cNombre" placeholder="Ej: Banco Banesco" required></div>
-          <div class="form-group"><label>Tipo de Cuenta</label><select id="cTipo"><option>Activo</option><option>Pasivo</option><option>Patrimonio</option><option>Ingreso</option><option>Costo</option><option>Gasto</option></select></div>
+          <div class="form-group"><label>Tipo de Cuenta</label><select id="cTipo"><option>Activo</option><option>Pasivo</option><option>Patrimonio</option><option>Ingreso</option><option>Costo</option><option>Gasto</option><option>Egreso</option></select></div>
           <div class="form-group"><label>Naturaleza</label><select id="cNat"><option>Débito</option><option>Crédito</option></select></div>
           <div class="form-group"><label>Estado Financiero</label><select id="cUbic"><option>Balance General</option><option>Estado de Resultados</option></select></div>
           <div class="form-group"><label>Indicador Libro Fiscal</label><select id="cLibro"><option>Ninguno</option><option>Libro de Compras</option><option>Libro de Ventas</option></select></div>
@@ -273,7 +271,7 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
         <table id="er_ing_table"><thead><tr><th>Índice</th><th>Código</th><th>Cuenta</th><th>Débitos</th><th>Créditos</th><th>Saldo</th><th></th></tr></thead><tbody></tbody><tfoot></tfoot></table>
         <h4>Costos</h4>
         <table id="er_cost_table"><thead><tr><th>Índice</th><th>Código</th><th>Cuenta</th><th>Débitos</th><th>Créditos</th><th>Saldo</th><th></th></tr></thead><tbody></tbody><tfoot></tfoot></table>
-        <h4>Gastos</h4>
+        <h4>Gastos / Egresos</h4>
         <table id="er_gas_table"><thead><tr><th>Índice</th><th>Código</th><th>Cuenta</th><th>Débitos</th><th>Créditos</th><th>Saldo</th><th></th></tr></thead><tbody></tbody><tfoot></tfoot></table>
         <div style="margin-top:12px;border-top:2px solid var(--border);padding-top:10px">
           <table><tr><td>Ingresos Totales:</td><td style="text-align:right" id="erIng"></td></tr>
@@ -284,18 +282,27 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
         </div>
       </div>
       <div class="card-box">
-        <h3>Balance General (Simetría del Equinoccio)</h3>
+        <h3>Balance General (Formato NIC)</h3>
         <div class="toolbar" style="margin-bottom:8px">
           <button class="btn btn-ghost" onclick="exportBalanceGeneralCSV()">Exportar CSV</button>
           <button class="btn" onclick="exportBalanceGeneralPDF()">Exportar PDF</button>
         </div>
-        <div class="small-muted">Detalle por cuentas que componen Activos, Pasivos y Patrimonio. Haz clic en "Ver Movs" para ver los asientos relacionados y corregir si es necesario.</div>
-        <h4>Activos</h4>
+        <div class="small-muted">Presentación por grupos: Activos Corrientes / No Corrientes, Pasivos Corrientes / No Corrientes, Patrimonio. Haz clic en "Ver Movs" para ver los asientos relacionados y corregir si es necesario.</div>
+        <h4>Activos Corrientes</h4>
         <table id="bg_act_table"><thead><tr><th>Índice</th><th>Código</th><th>Cuenta</th><th>Débitos</th><th>Créditos</th><th>Saldo</th><th></th></tr></thead><tbody></tbody><tfoot></tfoot></table>
-        <h4>Pasivos</h4>
+
+        <h4>Activos No Corrientes</h4>
+        <table id="bg_act_nc_table"><thead><tr><th>Índice</th><th>Código</th><th>Cuenta</th><th>Débitos</th><th>Créditos</th><th>Saldo</th><th></th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+
+        <h4>Pasivos Corrientes</h4>
         <table id="bg_pas_table"><thead><tr><th>Índice</th><th>Código</th><th>Cuenta</th><th>Débitos</th><th>Créditos</th><th>Saldo</th><th></th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+
+        <h4>Pasivos No Corrientes</h4>
+        <table id="bg_pas_nc_table"><thead><tr><th>Índice</th><th>Código</th><th>Cuenta</th><th>Débitos</th><th>Créditos</th><th>Saldo</th><th></th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+
         <h4>Patrimonio</h4>
         <table id="bg_pat_table"><thead><tr><th>Índice</th><th>Código</th><th>Cuenta</th><th>Débitos</th><th>Créditos</th><th>Saldo</th><th></th></tr></thead><tbody></tbody><tfoot></tfoot></table>
+
         <div style="margin-top:12px;border-top:2px solid var(--border);padding-top:10px">
           <table>
             <tr><td>Total Activos:</td><td style="text-align:right" class="num-deb"><strong id="bgAct"></strong></td></tr>
@@ -320,6 +327,51 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
     <div class="card-box">
       <h3>Libro de Compras (Soporte Fiscal)</h3>
       <table><thead><tr><th>Fecha</th><th>Asiento</th><th>Tercero/Proveedor</th><th>Concepto</th><th>Monto Deducible ($)</th></tr></thead><tbody id="tbodyCompras"></tbody></table>
+    </div>
+  </div>
+
+  <!-- 5.5 LIBRO DE INVENTARIO -->
+  <div id="inventario" class="tab-content">
+    <h2>Libro de Inventario (Kardex y Valoración de Existencias)</h2>
+    <p class="small">Control de existencias con valoración por costo promedio ponderado, kardex por producto, alertas de stock mínimo y balance de inventario valorado en tiempo real.</p>
+
+    <div class="card-box">
+      <h3>Agregar Producto al Inventario</h3>
+      <form id="formProducto">
+        <div class="form-grid">
+          <div class="form-group"><label>Código Producto</label><input type="text" id="pCodigo" placeholder="Ej: PRD-001" required></div>
+          <div class="form-group"><label>Nombre / Descripción</label><input type="text" id="pNombre" placeholder="Ej: Aceite Vegetal 1L" required></div>
+          <div class="form-group"><label>Unidad de Medida</label><input type="text" id="pUnidad" placeholder="Ej: UND / LT / KG" required></div>
+          <div class="form-group"><label>Stock Mínimo (alerta)</label><input type="number" id="pStockMin" min="0" step="any" value="0"></div>
+        </div>
+        <button type="submit" class="btn">Guardar Producto</button>
+      </form>
+    </div>
+
+    <div class="card-box">
+      <h3>Registrar Movimiento de Inventario</h3>
+      <form id="formMovInv">
+        <div class="form-grid">
+          <div class="form-group"><label>Fecha</label><input type="date" id="mFecha" required></div>
+          <div class="form-group"><label>Producto</label><select id="mProducto" required></select></div>
+          <div class="form-group"><label>Tipo de Movimiento</label><select id="mTipo"><option value="ENTRADA">Entrada (Compra / Producción)</option><option value="SALIDA">Salida (Venta / Consumo)</option><option value="AJUSTE">Ajuste por Diferencia (+)</option></select></div>
+          <div class="form-group"><label>Concepto / Referencia</label><input type="text" id="mConcepto" placeholder="Ej: Compra Factura N° 045" required></div>
+          <div class="form-group"><label>Cantidad</label><input type="number" id="mCantidad" min="0" step="any" required></div>
+          <div class="form-group"><label>Costo Unitario ($)</label><input type="text" id="mCosto" placeholder="Ej: 2.50" required></div>
+        </div>
+        <button type="submit" class="btn">Registrar Movimiento</button>
+        <span class="small" id="invHint" style="margin-left:12px"></span>
+      </form>
+    </div>
+
+    <div class="card-box">
+      <h3>Balance de Inventario Valorado (Existencias en Tiempo Real)</h3>
+      <table><thead><tr><th>Código</th><th>Producto</th><th>Unidad</th><th>Entradas</th><th>Salidas</th><th>Stock Actual</th><th>Costo Unit. Prom. ($)</th><th>Valor Total ($)</th><th>Estado</th><th>Kardex</th><th></th></tr></thead><tbody id="tbodyExistencias"></tbody><tfoot></tfoot></table>
+    </div>
+
+    <div class="card-box">
+      <h3>Movimientos del Libro de Inventario</h3>
+      <table><thead><tr><th>Fecha</th><th>Código</th><th>Producto</th><th>Tipo</th><th>Concepto</th><th>Cantidad</th><th>Costo Unit. ($)</th><th>Valor ($)</th><th>Stock Actual</th><th></th></tr></thead><tbody id="tbodyMovInv"></tbody></table>
     </div>
   </div>
 
@@ -529,12 +581,13 @@ function initDB(){
     DB = raw ? JSON.parse(raw) : null;
   }catch(e){ DB = null; }
   if(!DB || !Array.isArray(DB.catalogo) || !Array.isArray(DB.diario)){
-    DB = { catalogo: CUENTAS_INICIALES.map(c=>({...c})), diario: [], nextId:1, exchangeRates: {}, cierres: [] };
+    DB = { catalogo: CUENTAS_INICIALES.map(c=>({...c})), diario: [], nextId:1, exchangeRates: {}, cierres: [], inventario: {productos:[], movimientos:[], movSeq:0} };
     saveDB();
   } else {
     // ensure exchangeRates and cierres exist
     DB.exchangeRates = DB.exchangeRates || {};
     DB.cierres = DB.cierres || [];
+    DB.inventario = DB.inventario || {productos:[], movimientos:[], movSeq:0};
   }
 }
 function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
@@ -628,7 +681,7 @@ function filaAsientoHTML(){
   return `<tr>
     <td><select class="asCuenta" required><option value="">-- Seleccionar Cuenta --</option>${opts}</select></td>
     <td><input type="text" class="asDeb" inputmode="decimal" value="0.00"></td>
-    <td><input type="text" class="asCred" inputmode="decimal" value="0.00"></td>
+    <td><input type="text" class="asCred" class="asCred" inputmode="decimal" value="0.00"></td>
     <td><button type="button" class="btn btn-danger" style="padding:6px 10px;font-size:.75rem" onclick="this.closest('tr').remove();actualizarLiveTotals()">✕</button></td>
   </tr>`;
 }
@@ -680,25 +733,17 @@ document.getElementById('formAsiento').addEventListener('submit', function(e){
   if(editandoAsiento !== null){
     const origNum = editandoAsiento;
     const orig = DB.diario.filter(m=>m.asiento_num===origNum && m.estado==='ACTIVO');
-    if(!orig.length){ showAlert('El asiento #'+origNum+' ya fue reversado. Modificación cancelada.','error'); cancelarEdicion(); return; }
-    orig.forEach(m=> m.estado='REVERSADO');
-    const numRev = siguienteAsiento();
-    const hoy = new Date().toISOString().slice(0,10);
-    for(const m of orig){
-      DB.diario.push({ id:DB.nextId++, asiento_num:numRev, fecha:hoy,
-        concepto:`REVERSO AUTOMÁTICO POR MODIFICACIÓN DEL ASIENTO #${origNum}`,
-        tercero:m.tercero, codigo_cuenta:m.codigo_cuenta,
-        debito_centavos:m.credito_centavos, credito_centavos:m.debito_centavos, estado:'ACTIVO', moneda:m.moneda || 'USD', exchange_rate_bs:m.exchange_rate_bs || null });
-    }
-    const numNuevo = siguienteAsiento();
+    if(!orig.length){ showAlert('El asiento #'+origNum+' ya no existe. Modificación cancelada.','error'); cancelarEdicion(); return; }
+    /* MODIFICACIÓN DIRECTA: se reemplazan las líneas del asiento conservando su número.
+       No se genera reverso ni asiento nuevo. */
+    DB.diario = DB.diario.filter(m=>!(m.asiento_num===origNum && m.estado==='ACTIVO'));
     for(const l of lineas){
-      DB.diario.push({ id:DB.nextId++, asiento_num:numNuevo, fecha,
-        concepto:`${concepto} (Corrección del Asiento #${origNum})`, tercero,
+      DB.diario.push({ id:DB.nextId++, asiento_num:origNum, fecha, concepto, tercero,
         codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO', moneda, exchange_rate_bs:tc });
     }
     saveDB();
     cancelarEdicion();
-    showAlert(`Asiento #${origNum} modificado correctamente: Reverso #${numRev} + Asiento corregido #${numNuevo} registrados.`,'success');
+    showAlert(`Asiento #${origNum} modificado correctamente en el Libro Diario (mismo número, sin crear asientos nuevos).`,'success');
     renderAll();
     return;
   }
@@ -743,7 +788,7 @@ function cargarEdicion(num){
   updateTcInfoForDate(primero.fecha);
   actualizarLiveTotals();
   window.scrollTo({top:0,behavior:'smooth'});
-  showAlert('Modificando asiento #'+num+'. Al guardar: se reversa el original, se genera el reverso y se registra el asiento corregido con número nuevo.','success');
+  showAlert('Modificando asiento #'+num+'. Al guardar se actualizará directamente con el mismo número de asiento.','success');
 }
 
 function cancelarEdicion(){
@@ -758,45 +803,13 @@ function cancelarEdicion(){
   updateTcInfoForDate(document.getElementById('asFecha').value);
 }
 
-function ejecutarReverso(num){
-  const movs = DB.diario.filter(m=>m.asiento_num===num && m.estado==='ACTIVO');
-  if(!movs.length) return false;
-  movs.forEach(m=> m.estado='REVERSADO');
-  const nuevo = siguienteAsiento();
-  const hoy = new Date().toISOString().slice(0,10);
-  for(const m of movs){
-    DB.diario.push({ id:DB.nextId++, asiento_num:nuevo, fecha:hoy,
-      concepto:`REVERSO/CORRECCIÓN ASIENTO #${num}: ${m.concepto}`,
-      tercero:m.tercero, codigo_cuenta:m.codigo_cuenta,
-      debito_centavos:m.credito_centavos, credito_centavos:m.debito_centavos, estado:'ACTIVO', moneda:m.moneda || 'USD', exchange_rate_bs:m.exchange_rate_bs || null });
-  }
-  return nuevo;
-}
-
-function reversarAsiento(num){
-  if(!confirm(`¿Reversar el asiento #${num} por corrección de auditoría?`)) return;
-  const nuevo = ejecutarReverso(num);
-  if(nuevo===false){ showAlert(`El asiento #${num} ya fue reversado o no existe.`,'error'); return; }
+function eliminarAsiento(num){
+  if(!confirm(`¿ELIMINAR DEFINITIVAMENTE el asiento #${num} del Libro Diario? Esta acción no se puede deshacer.`)) return;
+  const antes = DB.diario.length;
+  DB.diario = DB.diario.filter(m=>m.asiento_num!==num);
+  if(DB.diario.length===antes){ showAlert(`El asiento #${num} no existe.`,'error'); return; }
   saveDB();
-  showAlert(`Asiento #${num} reversado. Se generó el Asiento de Corrección #${nuevo}.`,'success');
-  renderAll();
-}
-
-function toggleTodos(checked){
-  document.querySelectorAll('.chkAsiento').forEach(c=> c.checked = checked);
-}
-
-function reversarSeleccionados(){
-  const nums = [...new Set([...document.querySelectorAll('.chkAsiento:checked')].map(c=>parseInt(c.value,10)))];
-  if(!nums.length){ showAlert('Seleccione al menos un asiento para reversar.','error'); return; }
-  if(!confirm(`¿Reversar ${nums.length} asiento(s) seleccionado(s): #${nums.join(', #')}?`)) return;
-  const hechos = [];
-  for(const n of nums){
-    const r = ejecutarReverso(n);
-    if(r!==false) hechos.push(`#${n} → reverso #${r}`);
-  }
-  saveDB();
-  showAlert(hechos.length ? `Reversados: ${hechos.join(' · ')}` : 'Ningún asiento pudo reversarse.', hechos.length?'success':'error');
+  showAlert(`Asiento #${num} eliminado completamente del Libro Diario.`,'success');
   renderAll();
 }
 
@@ -805,9 +818,7 @@ function cargarSeleccionado(){
   if(!v){ showAlert('Seleccione un asiento del listado para modificarlo.','error'); return; }
   cargarEdicion(parseInt(v,10));
 }
-window.reversarAsiento = reversarAsiento;
-window.reversarSeleccionados = reversarSeleccionados;
-window.toggleTodos = toggleTodos;
+window.eliminarAsiento = eliminarAsiento;
 window.cargarSeleccionado = cargarSeleccionado;
 window.cargarEdicion = cargarEdicion;
 window.cancelarEdicion = cancelarEdicion;
@@ -852,10 +863,10 @@ document.getElementById('formCuenta').addEventListener('submit', function(e){
 function cuentaByCodigo(cod){ return DB.catalogo.find(c=>c.codigo===cod); }
 
 function renderAll(){
+  renderInventario();
   /* Libro Diario */
   document.getElementById('numAsientoLabel').textContent = '#'+siguienteAsiento();
   const movs = DB.diario.slice().sort((a,b)=> b.asiento_num-a.asiento_num || a.id-b.id);
-  const chkAllBox = document.getElementById('chkAll'); if(chkAllBox) chkAllBox.checked = false;
   const asientosActivosLista = DB.diario.filter(m=>m.estado==='ACTIVO');
   const asientosUnicos = [...new Map(asientosActivosLista.map(m=>[m.asiento_num,m])).values()];
   const selAsiento = document.getElementById('selAsiento');
@@ -867,7 +878,7 @@ function renderAll(){
     vistosAsientos.add(m.asiento_num);
     const c = cuentaByCodigo(m.codigo_cuenta);
     return `<tr>
-      <td>${(esPrimera && m.estado==='ACTIVO') ? `<input type="checkbox" class="chkAsiento" value="${m.asiento_num}" title="Seleccionar asiento">` : ''} <strong>#${m.asiento_num}</strong></td>
+      <td><strong>#${m.asiento_num}</strong></td>
       <td>${m.fecha}</td>
       <td>${m.exchange_rate_bs?Number(m.exchange_rate_bs).toFixed(4):'-'}</td>
       <td>${m.concepto}</td><td>${m.tercero}</td>
@@ -878,10 +889,10 @@ function renderAll(){
         ? '<span class="badge badge-debito">ACTIVO</span>'
         : '<span class="badge badge-credito">REVERSADO</span>'}</td>
       <td>${(m.estado==='ACTIVO' && esPrimera)
-        ? `<button class="btn btn-danger" style="padding:4px 8px;font-size:.75rem" onclick="reversarAsiento(${m.asiento_num})">Reversar</button> <button class="btn btn-ghost" style="padding:4px 8px;font-size:.75rem" onclick="cargarEdicion(${m.asiento_num})">Modificar</button>`
+        ? `<button class="btn btn-ghost" style="padding:4px 8px;font-size:.75rem" onclick="cargarEdicion(${m.asiento_num})">Modificar</button> <button class="btn btn-danger" style="padding:4px 8px;font-size:.75rem" onclick="eliminarAsiento(${m.asiento_num})">Eliminar</button>`
         : '—'}</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="12" class="small">Sin movimientos registrados.</td></tr>';
+  }).join('') || '<tr><td colspan="11" class="small">Sin movimientos registrados.</td></tr>';
 
   /* Catálogo */
   document.getElementById('tbodyCatalogo').innerHTML = DB.catalogo.slice()
@@ -940,34 +951,77 @@ function renderAll(){
     }).join('');
   }
 
-  // ER: Ingresos / Costos / Gastos
+  // ER: Ingresos / Costos / Gastos (incluye "Egreso" como parte de Gastos)
+  const gastosCombined = (grupoPorTipo['Gasto']||[]).concat(grupoPorTipo['Egreso']||[]);
   document.querySelector('#er_ing_table tbody').innerHTML = renderTableRows(grupoPorTipo['Ingreso']);
   document.querySelector('#er_cost_table tbody').innerHTML = renderTableRows(grupoPorTipo['Costo']);
-  document.querySelector('#er_gas_table tbody').innerHTML = renderTableRows(grupoPorTipo['Gasto']);
+  document.querySelector('#er_gas_table tbody').innerHTML = renderTableRows(gastosCombined);
 
-  // Totales ER
-  const sum = t => mayor.filter(m=>m.tipo_cuenta===t).reduce((a,m)=>a+m.saldo,0);
-  const ingresos = sum('Ingreso'), costos = sum('Costo'), gastos = sum('Gasto');
+  // Totales ER (sumando 'Gasto' + 'Egreso')
+  const sumType = t => mayor.filter(m=>m.tipo_cuenta===t).reduce((a,m)=>a+m.saldo,0);
+  const ingresos = sumType('Ingreso'), costos = sumType('Costo'), gastos = sumType('Gasto') + sumType('Egreso');
   const utilidad = ingresos - costos - gastos;
   document.getElementById('erIng').textContent = centsToStr(ingresos)+' $';
   document.getElementById('erCost').textContent = '('+centsToStr(costos)+') $';
   document.getElementById('erGas').textContent = '('+centsToStr(gastos)+') $';
   document.getElementById('erUtil').textContent = centsToStr(utilidad)+' $';
 
-  // BG: Activos / Pasivos / Patrimonio
-  document.querySelector('#bg_act_table tbody').innerHTML = renderTableRows(grupoPorTipo['Activo']);
-  document.querySelector('#bg_pas_table tbody').innerHTML = renderTableRows(grupoPorTipo['Pasivo']);
-  document.querySelector('#bg_pat_table tbody').innerHTML = renderTableRows(grupoPorTipo['Patrimonio']);
+  // BG: Activos / Pasivos / Patrimonio en Formato NIC (Corriente / No Corriente)
+  const activos = mayor.filter(m=>m.tipo_cuenta==='Activo');
+  const pasivos = mayor.filter(m=>m.tipo_cuenta==='Pasivo');
+  const patrimonio = mayor.filter(m=>m.tipo_cuenta==='Patrimonio');
 
-  const activos = sum('Activo'), pasivos = sum('Pasivo'), patBase = sum('Patrimonio');
-  const patTotal = patBase + utilidad, pmp = pasivos + patTotal;
-  document.getElementById('bgAct').textContent = centsToStr(activos)+' $';
-  document.getElementById('bgPas').textContent = centsToStr(pasivos)+' $';
+  // Clasificación por "Corriente" en seccion_destino (si contiene la palabra 'Corriente' lo toma como corriente)
+  const isCorriente = (item) => {
+    if(!item || !item.seccion_destino) return false;
+    return /corriente/i.test(item.seccion_destino);
+  };
+
+  const activosCorrientes = activos.filter(isCorriente);
+  const activosNoCorrientes = activos.filter(a => !isCorriente(a));
+  const pasivosCorrientes = pasivos.filter(isCorriente);
+  const pasivosNoCorrientes = pasivos.filter(p => !isCorriente(p));
+
+  function sumSaldo(arr){ return (arr||[]).reduce((a,m)=>a+(m.saldo||0),0); }
+
+  document.querySelector('#bg_act_table tbody').innerHTML = renderTableRows(activosCorrientes);
+  document.querySelector('#bg_act_nc_table tbody').innerHTML = renderTableRows(activosNoCorrientes);
+  document.querySelector('#bg_pas_table tbody').innerHTML = renderTableRows(pasivosCorrientes);
+  document.querySelector('#bg_pas_nc_table tbody').innerHTML = renderTableRows(pasivosNoCorrientes);
+  document.querySelector('#bg_pat_table tbody').innerHTML = renderTableRows(patrimonio);
+
+  const totalActivosCorr = sumSaldo(activosCorrientes);
+  const totalActivosNoCorr = sumSaldo(activosNoCorrientes);
+  const totalPasivosCorr = sumSaldo(pasivosCorrientes);
+  const totalPasivosNoCorr = sumSaldo(pasivosNoCorrientes);
+  const totalPatrimonio = sumSaldo(patrimonio);
+
+  const totalActivos = totalActivosCorr + totalActivosNoCorr;
+  const totalPasivos = totalPasivosCorr + totalPasivosNoCorr;
+  const patTotal = totalPatrimonio + utilidad; // patrimonio + resultados
+  const pmp = totalPasivos + patTotal;
+
+  // Mostrar totales principales
+  document.getElementById('bgAct').textContent = centsToStr(totalActivos)+' $';
+  document.getElementById('bgPas').textContent = centsToStr(totalPasivos)+' $';
   document.getElementById('bgPat').textContent = centsToStr(patTotal)+' $';
   document.getElementById('bgPMP').textContent = centsToStr(pmp)+' $';
-  document.getElementById('bgCheck').innerHTML = (activos===pmp)
+  document.getElementById('bgCheck').innerHTML = (totalActivos===pmp)
     ? '<div class="alert alert-success" style="text-align:center;margin:0">✔ BALANCE CUADRADO PERFECTO (Activo = Pasivo + Patrimonio)</div>'
     : '<div class="alert alert-error" style="text-align:center;margin:0">✖ DESBALANCE DETECTADO EN AUDITORÍA</div>';
+
+  // Rellenar tfoot de cada tabla con subtotal si existe
+  function setTfoot(tableId, subtotalCents){
+    const table = document.getElementById(tableId);
+    const tfoot = table.querySelector('tfoot');
+    if(!tfoot) return;
+    tfoot.innerHTML = `<tr style="border-top:2px solid var(--border)"><td colspan="5" style="text-align:right"><strong>Subtotal</strong></td><td style="text-align:right"><strong>${centsToStr(subtotalCents)}</strong></td><td></td></tr>`;
+  }
+  setTfoot('bg_act_table', totalActivosCorr);
+  setTfoot('bg_act_nc_table', totalActivosNoCorr);
+  setTfoot('bg_pas_table', totalPasivosCorr);
+  setTfoot('bg_pas_nc_table', totalPasivosNoCorr);
+  setTfoot('bg_pat_table', totalPatrimonio);
 
   /* Libros Fiscales: números de asiento como enlaces para editar */
   const fiscalRows = indicador => DB.diario
@@ -982,7 +1036,7 @@ function renderAll(){
 
   /* Render Cierres list */
   document.getElementById('tbodyCierres').innerHTML = DB.cierres.slice().sort((a,b)=>b.id-a.id).map(c=>{
-    return `<tr><td>${c.tipo}</td><td>${c.periodo}</td><td>#${c.asiento_num}</td><td>${c.fecha}</td><td>${c.estado}</td><td>${c.estado==='ACTIVO'?`<button class="btn btn-ghost" onclick="reversarCierre(${c.id})">Reversar</button>`:'—'}</td></tr>`;
+    return `<tr><td>${c.tipo}</td><td>${c.periodo}</td><td>#${c.asiento_num}</td><td>${c.fecha}</td><td>${c.estado}</td><td>${c.estado==='ACTIVO'?`<button class="btn btn-ghost" onclick="eliminarCierre(${c.id})">Eliminar</button>`:'—'}</td></tr>`;
   }).join('') || '<tr><td colspan="6" class="small">No hay cierres registrados.</td></tr>';
 }
 
@@ -1064,11 +1118,11 @@ function realizarCierreMensual(){
       lines.push({codigo:acc.codigo, debito_centavos: saldo, credito_centavos:0});
       totalIngresos += saldo;
     }
-    if((acc.tipo_cuenta==='Costo' || acc.tipo_cuenta==='Gasto') && saldo>0){
-      // Gastos/costos normalmente tienen saldo débito -> para cerrar se acredita la cuenta por su saldo debit
+    if((acc.tipo_cuenta==='Costo' || acc.tipo_cuenta==='Gasto' || acc.tipo_cuenta==='Egreso') && saldo>0){
+      // Gastos/costos/egresos normalmente tienen saldo débito -> para cerrar se acredita la cuenta por su saldo debit
       lines.push({codigo:acc.codigo, debito_centavos:0, credito_centavos: saldo});
       if(acc.tipo_cuenta==='Costo') totalCostos += saldo;
-      else totalGastos += saldo;
+      else totalGastos += saldo; // incluye Gasto y Egreso
     }
   }
   const net = totalIngresos - totalCostos - totalGastos; // en centavos
@@ -1079,7 +1133,7 @@ function realizarCierreMensual(){
   } else if(net<0){
     lines.push({codigo:'3999', debito_centavos: Math.abs(net), credito_centavos:0});
   } else {
-    // net = 0 -> no se necesita linea de resultados, pero still record zero? skip
+    // net = 0 -> no se detecta movimiento neto
   }
   if(lines.length<2){ showAlert('No se detectaron saldos temporales en el periodo. Cierre no necesario.','error'); return; }
   // registrar asiento de cierre con fecha = último día del mes, attach exchange rate if available
@@ -1096,17 +1150,16 @@ function realizarCierreMensual(){
   renderAll();
 }
 
-/* Reversar cierre (por id de cierre) -> ejecuta reversos sobre el asiento del cierre y marca cierre como REVERSADO */
-function reversarCierre(id){
+/* Eliminar cierre: elimina el asiento contable del cierre por completo y marca el cierre */
+function eliminarCierre(id){
   const cierre = DB.cierres.find(c=>c.id===id);
   if(!cierre){ showAlert('Cierre no encontrado.','error'); return; }
-  if(cierre.estado!=='ACTIVO'){ showAlert('Este cierre ya fue reversado.','error'); return; }
-  if(!confirm(`¿Reversar el cierre ${cierre.tipo} periodo ${cierre.periodo} (Asiento #${cierre.asiento_num})?`)) return;
-  const r = ejecutarReverso(cierre.asiento_num);
-  if(r===false){ showAlert('No se pudo reversar el asiento del cierre.','error'); return; }
-  cierre.estado = 'REVERSADO';
+  if(cierre.estado!=='ACTIVO'){ showAlert('Este cierre ya fue eliminado.','error'); return; }
+  if(!confirm(`¿Eliminar el cierre ${cierre.tipo} periodo ${cierre.periodo} y su asiento #${cierre.asiento_num}?`)) return;
+  DB.diario = DB.diario.filter(m=>m.asiento_num!==cierre.asiento_num);
+  cierre.estado = 'ELIMINADO';
   saveDB();
-  showAlert(`Cierre ${cierre.periodo} reversado. Reverso generado #${r}.`,'success');
+  showAlert(`Cierre ${cierre.periodo} eliminado junto con su asiento #${cierre.asiento_num}.`,'success');
   renderAll();
 }
 
@@ -1134,7 +1187,7 @@ function realizarCierreAnual(){
       lines.push({codigo:acc.codigo, debito_centavos: saldo, credito_centavos:0});
       totalIngresos += saldo;
     }
-    if((acc.tipo_cuenta==='Costo' || acc.tipo_cuenta==='Gasto') && saldo>0){
+    if((acc.tipo_cuenta==='Costo' || acc.tipo_cuenta==='Gasto' || acc.tipo_cuenta==='Egreso') && saldo>0){
       lines.push({codigo:acc.codigo, debito_centavos:0, credito_centavos: saldo});
       if(acc.tipo_cuenta==='Costo') totalCostos += saldo;
       else totalGastos += saldo;
@@ -1155,6 +1208,164 @@ function realizarCierreAnual(){
   showAlert(`Cierre anual registrado: Asiento #${num} (Año ${year}).`,'success');
   renderAll();
 }
+
+/* ============================ 9.5 LIBRO DE INVENTARIO (KARDEX Y VALORACIÓN) ============================ */
+function renderSelectProductos(){
+  const sel = document.getElementById('mProducto');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">-- Seleccionar Producto --</option>' +
+    DB.inventario.productos.map(p=>`<option value="${p.codigo}">${p.codigo} - ${p.nombre}</option>`).join('');
+  actualizarHintInventario();
+}
+
+function existenciaProducto(codigo){
+  let entradas=0, salidas=0, valorEntradas=0;
+  for(const m of DB.inventario.movimientos){
+    if(m.producto!==codigo) continue;
+    const q = Number(m.cantidad)||0;
+    const c = strToCents(m.costo_unitario);
+    if(m.tipo==='ENTRADA' || m.tipo==='AJUSTE'){ entradas += q; valorEntradas += Math.round(q*c); }
+    else if(m.tipo==='SALIDA'){ salidas += q; }
+  }
+  const stock = entradas - salidas;
+  const costoPromCents = entradas>0 ? Math.round(valorEntradas/entradas) : 0;
+  return {entradas, salidas, stock, costoPromCents, valorCents: Math.round(stock*costoPromCents)};
+}
+
+function actualizarHintInventario(){
+  const codEl = document.getElementById('mProducto');
+  const tipoEl = document.getElementById('mTipo');
+  const hint = document.getElementById('invHint');
+  if(!codEl || !tipoEl || !hint) return;
+  const cod = codEl.value;
+  if(!cod){ hint.textContent=''; return; }
+  const ex = existenciaProducto(cod);
+  hint.textContent = `Stock disponible: ${ex.stock} · Costo promedio actual: $${centsToStr(ex.costoPromCents)}`;
+}
+
+document.getElementById('mProducto').addEventListener('change', actualizarHintInventario);
+document.getElementById('mTipo').addEventListener('change', actualizarHintInventario);
+
+document.getElementById('formProducto').addEventListener('submit', function(e){
+  e.preventDefault();
+  const codigo = document.getElementById('pCodigo').value.trim();
+  const nombre = document.getElementById('pNombre').value.trim();
+  const unidad = document.getElementById('pUnidad').value.trim();
+  const stockMin = parseFloat(document.getElementById('pStockMin').value)||0;
+  if(!codigo || !nombre || !unidad){ showAlert('Complete todos los campos del producto.','error'); return; }
+  if(DB.inventario.productos.some(p=>p.codigo===codigo)){ showAlert(`El código ${codigo} ya existe en inventario.`,'error'); return; }
+  DB.inventario.productos.push({codigo, nombre, unidad, stock_minimo:stockMin});
+  saveDB();
+  this.reset();
+  document.getElementById('pStockMin').value = 0;
+  showAlert(`Producto ${codigo} - ${nombre} agregado al inventario.`,'success');
+  renderAll();
+});
+
+document.getElementById('formMovInv').addEventListener('submit', function(e){
+  e.preventDefault();
+  const fecha = document.getElementById('mFecha').value;
+  const codigo = document.getElementById('mProducto').value;
+  const tipo = document.getElementById('mTipo').value;
+  const concepto = document.getElementById('mConcepto').value.trim();
+  const cantidad = parseFloat(document.getElementById('mCantidad').value);
+  const costo = document.getElementById('mCosto').value.trim();
+  if(!fecha || !codigo || !concepto){ showAlert('Complete fecha, producto y concepto.','error'); return; }
+  if(!(cantidad>0)){ showAlert('La cantidad debe ser mayor que cero.','error'); return; }
+  if(strToCents(costo)<=0){ showAlert('El costo unitario debe ser mayor que cero.','error'); return; }
+  const ex = existenciaProducto(codigo);
+  if(tipo==='SALIDA' && cantidad > ex.stock){ showAlert(`Stock insuficiente: disponible ${ex.stock}, solicitado ${cantidad}.`,'error'); return; }
+  DB.inventario.movSeq = (DB.inventario.movSeq||0)+1;
+  DB.inventario.movimientos.push({id:DB.inventario.movSeq, fecha, producto:codigo, tipo, concepto, cantidad, costo_unitario:costo});
+  saveDB();
+  this.reset();
+  document.getElementById('mFecha').value = new Date().toISOString().slice(0,10);
+  showAlert(`Movimiento de ${tipo.toLowerCase()} registrado: ${cantidad} unid. del producto ${codigo}.`,'success');
+  renderAll();
+});
+
+function eliminarMovInv(id){
+  if(!confirm('¿Eliminar este movimiento de inventario?')) return;
+  DB.inventario.movimientos = DB.inventario.movimientos.filter(m=>m.id!==id);
+  saveDB();
+  showAlert('Movimiento de inventario eliminado.','success');
+  renderAll();
+}
+
+function eliminarProducto(codigo){
+  const usado = DB.inventario.movimientos.some(m=>m.producto===codigo);
+  if(usado){ showAlert('No se puede eliminar: el producto tiene movimientos registrados.','error'); return; }
+  if(!confirm(`¿Eliminar el producto ${codigo} del inventario?`)) return;
+  DB.inventario.productos = DB.inventario.productos.filter(p=>p.codigo!==codigo);
+  saveDB();
+  showAlert(`Producto ${codigo} eliminado.`,'success');
+  renderAll();
+}
+
+function showKardex(codigo){
+  const p = DB.inventario.productos.find(x=>x.codigo===codigo);
+  document.getElementById('modalTitle').textContent = `Kardex · ${codigo} - ${p?p.nombre:''}`;
+  const ex = existenciaProducto(codigo);
+  document.getElementById('modalSubtitle').textContent = `Unidad: ${p?p.unidad:'—'} · Stock actual: ${ex.stock} · Costo promedio: $${centsToStr(ex.costoPromCents)} · Valor total: $${centsToStr(ex.valorCents)}`;
+  const movs = DB.inventario.movimientos.filter(m=>m.producto===codigo)
+    .sort((a,b)=> a.fecha===b.fecha ? a.id-b.id : (a.fecha<b.fecha?-1:1));
+  let saldo=0;
+  const rows = movs.map(m=>{
+    const q = Number(m.cantidad)||0;
+    saldo += (m.tipo==='SALIDA') ? -q : q;
+    const valor = Math.round(q*strToCents(m.costo_unitario));
+    return `<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${m.concepto}</td>
+      <td class="num-deb">${m.tipo!=='SALIDA'?q:''}</td>
+      <td class="num-cred">${m.tipo==='SALIDA'?q:''}</td>
+      <td>${centsToStr(strToCents(m.costo_unitario))}</td>
+      <td>${centsToStr(valor)}</td>
+      <td><strong>${saldo}</strong></td>
+      <td><button class="btn btn-danger" style="padding:4px 8px;font-size:.75rem" onclick="eliminarMovInv(${m.id})">Eliminar</button></td></tr>`;
+  }).join('');
+  document.getElementById('modalContent').innerHTML = rows
+    ? `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Entrada</th><th>Salida</th><th>Costo Unit ($)</th><th>Valor ($)</th><th>Saldo Cant.</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+    : '<div class="small">Sin movimientos para este producto.</div>';
+  document.getElementById('accountModal').classList.add('active');
+  document.getElementById('accountModal').setAttribute('aria-hidden','false');
+}
+
+function renderInventario(){
+  renderSelectProductos();
+  let totalValor = 0;
+  const rows = DB.inventario.productos.map(p=>{
+    const ex = existenciaProducto(p.codigo);
+    totalValor += ex.valorCents;
+    const bajo = ex.stock <= (p.stock_minimo||0);
+    return `<tr><td class="mono">${p.codigo}</td><td>${p.nombre}</td><td>${p.unidad}</td>
+      <td>${ex.entradas}</td><td>${ex.salidas}</td>
+      <td><strong>${ex.stock}</strong></td>
+      <td>${centsToStr(ex.costoPromCents)}</td>
+      <td><strong>${centsToStr(ex.valorCents)}</strong></td>
+      <td>${bajo?'<span class="badge badge-credito">BAJO STOCK</span>':'<span class="badge badge-debito">OK</span>'}</td>
+      <td><button class="btn btn-ghost" style="padding:4px 8px;font-size:.75rem" onclick="showKardex('${p.codigo}')">Kardex</button></td>
+      <td><button class="btn btn-danger" style="padding:4px 8px;font-size:.75rem" onclick="eliminarProducto('${p.codigo}')">Eliminar</button></td></tr>`;
+  }).join('');
+  document.getElementById('tbodyExistencias').innerHTML = rows || '<tr><td colspan="11" class="small">Sin productos registrados.</td></tr>';
+  const tfoot = document.querySelector('#tbodyExistencias').closest('table').querySelector('tfoot');
+  if(tfoot) tfoot.innerHTML = `<tr style="border-top:2px solid var(--accent-gold)"><td colspan="7" style="text-align:right"><strong>VALOR TOTAL DEL INVENTARIO:</strong></td><td colspan="4"><strong class="num-deb">${centsToStr(totalValor)} $</strong></td></tr>`;
+  const movRows = DB.inventario.movimientos.slice()
+    .sort((a,b)=> a.fecha===b.fecha ? b.id-a.id : (a.fecha<b.fecha?1:-1))
+    .map(m=>{
+      const p = DB.inventario.productos.find(x=>x.codigo===m.producto);
+      const valor = Math.round((Number(m.cantidad)||0)*strToCents(m.costo_unitario));
+      const badge = m.tipo==='SALIDA' ? '<span class="badge badge-credito">SALIDA</span>'
+                  : (m.tipo==='ENTRADA' ? '<span class="badge badge-debito">ENTRADA</span>' : 'AJUSTE');
+      return `<tr><td>${m.fecha}</td><td class="mono">${m.producto}</td><td>${p?p.nombre:'—'}</td>
+        <td>${badge}</td><td>${m.concepto}</td><td>${m.cantidad}</td>
+        <td>${centsToStr(strToCents(m.costo_unitario))}</td><td>${centsToStr(valor)}</td>
+        <td>${existenciaProducto(m.producto).stock}</td>
+        <td><button class="btn btn-danger" style="padding:4px 8px;font-size:.75rem" onclick="eliminarMovInv(${m.id})">Eliminar</button></td></tr>`;
+    }).join('');
+  document.getElementById('tbodyMovInv').innerHTML = movRows || '<tr><td colspan="10" class="small">Sin movimientos de inventario.</td></tr>';
+}
+window.eliminarMovInv = eliminarMovInv;
+window.eliminarProducto = eliminarProducto;
+window.showKardex = showKardex;
 
 /* ============================ 10. EXPORT (CSV / PDF) ============================ */
 /* (Se mantienen las funciones de export ya implementadas antes) */
@@ -1212,7 +1423,7 @@ function exportEstadoResultadosCSV(){
   const gas = tableToArray('er_gas_table');
   if(gas.rows.length){
     parts.push([]);
-    parts.push(['Gastos']);
+    parts.push(['Gastos / Egresos']);
     parts.push(gas.headers);
     gas.rows.forEach(r=> parts.push(r));
   }
@@ -1235,16 +1446,30 @@ function exportBalanceGeneralCSV(){
   const act = tableToArray('bg_act_table');
   if(act.rows.length){
     parts.push([]);
-    parts.push(['Activos']);
+    parts.push(['Activos Corrientes']);
     parts.push(act.headers);
     act.rows.forEach(r=> parts.push(r));
+  }
+  const actnc = tableToArray('bg_act_nc_table');
+  if(actnc.rows.length){
+    parts.push([]);
+    parts.push(['Activos No Corrientes']);
+    parts.push(actnc.headers);
+    actnc.rows.forEach(r=> parts.push(r));
   }
   const pas = tableToArray('bg_pas_table');
   if(pas.rows.length){
     parts.push([]);
-    parts.push(['Pasivos']);
+    parts.push(['Pasivos Corrientes']);
     parts.push(pas.headers);
     pas.rows.forEach(r=> parts.push(r));
+  }
+  const pasnc = tableToArray('bg_pas_nc_table');
+  if(pasnc.rows.length){
+    parts.push([]);
+    parts.push(['Pasivos No Corrientes']);
+    parts.push(pasnc.headers);
+    pasnc.rows.forEach(r=> parts.push(r));
   }
   const pat = tableToArray('bg_pat_table');
   if(pat.rows.length){
@@ -1314,15 +1539,17 @@ function exportEstadoResultadosPDF(){
   const sections = [
     {id:'er_ing_table', title:'Ingresos'},
     {id:'er_cost_table', title:'Costos'},
-    {id:'er_gas_table', title:'Gastos'}
+    {id:'er_gas_table', title:'Gastos / Egresos'}
   ];
   const html = buildSectionsHtml(sections);
   openPrintableWindow('Estado de Resultados - Detalle', html);
 }
 function exportBalanceGeneralPDF(){
   const sections = [
-    {id:'bg_act_table', title:'Activos'},
-    {id:'bg_pas_table', title:'Pasivos'},
+    {id:'bg_act_table', title:'Activos Corrientes'},
+    {id:'bg_act_nc_table', title:'Activos No Corrientes'},
+    {id:'bg_pas_table', title:'Pasivos Corrientes'},
+    {id:'bg_pas_nc_table', title:'Pasivos No Corrientes'},
     {id:'bg_pat_table', title:'Patrimonio'}
   ];
   const html = buildSectionsHtml(sections);
@@ -1335,8 +1562,11 @@ document.getElementById('btnIngresar').addEventListener('click',()=>{
 });
 
 /* ARRANQUE */
+/* Vaciar memoria local para empezar desde cero: se elimina la clave de la BD antes de inicializar */
+localStorage.removeItem(DB_KEY);
 initDB();
 document.getElementById('asFecha').value = new Date().toISOString().slice(0,10);
+document.getElementById('mFecha').value = new Date().toISOString().slice(0,10);
 document.getElementById('tbodyAsiento').innerHTML = filaAsientoHTML()+filaAsientoHTML();
 actualizarLiveTotals();
 generarIndiceCuenta(); // auto-completa el índice correlativo al iniciar
