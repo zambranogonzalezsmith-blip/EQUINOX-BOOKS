@@ -149,13 +149,30 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
     <p class="small" style="margin-top:15px">Modo: <span class="mono">Servidor Local Offline</span> · Base de datos: <span class="mono">localStorage</span> · Precisión: <span class="mono">Centavos enteros (Cero Float)</span></p>
   </div>
 
+  <!-- NUEVA SECCIÓN: GESTOR DE TIPO DE CAMBIO (FUERA DE LOS LIBROS) -->
+  <div class="card-box" id="tcManager">
+    <h3>Gestor de Tipo de Cambio (BCV) - Manual</h3>
+    <p class="small">Carga manual de tipo de cambio Bs/USD según BCV. Valores almacenados para uso en conversión contable conforme a NIC (monetary items conversion by transaction date).</p>
+    <form id="formTCManual" onsubmit="return false;">
+      <div class="form-grid">
+        <div class="form-group"><label>Fecha</label><input type="date" id="manualTCFecha" value=""></div>
+        <div class="form-group"><label>Tipo de Cambio (Bs por USD)</label><input type="text" id="manualTCRate" placeholder="Ej: 8.2300"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button type="button" class="btn" onclick="guardarTipoCambioManual()">Guardar TC Manual</button>
+        <button type="button" class="btn btn-ghost" onclick="aplicarTCNIC()">Aplicar algoritmo NIC (resumen)</button>
+        <div class="small" id="manualTcInfo"></div>
+      </div>
+    </form>
+  </div>
+
   <div class="tabs">
     <button class="tab-btn active" data-tab="diario">Libro Diario</button>
     <button class="tab-btn" data-tab="catalogo">Catálogo de Cuentas (NIC)</button>
     <button class="tab-btn" data-tab="mayor">Libro Mayor</button>
     <button class="tab-btn" data-tab="estados">Estados Financieros</button>
     <button class="tab-btn" data-tab="fiscal">Libros Fiscales</button>
-        <button class="tab-btn" data-tab="inventario">Libro de Inventario</button>
+    <button class="tab-btn" data-tab="inventario">Libro de Inventario</button>
     <button class="tab-btn" data-tab="cierres">Cierres</button>
     <button class="tab-btn" data-tab="arquitectura">Descripción & Arquitectura</button>
     <button class="tab-btn" data-tab="licencias">Módulo Licencias</button>
@@ -171,26 +188,21 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
       <form id="formAsiento">
         <div class="form-grid">
           <div class="form-group"><label>Fecha</label><input type="date" id="asFecha" required></div>
-          <div class="form-group"><label>Tercero (RIF/Nombre)</label><input type="text" id="asTercero" placeholder="Ej: J-12345678-0" required></div>
           <div class="form-group" style="grid-column:span 2"><label>Concepto / Descripción</label><input type="text" id="asConcepto" placeholder="Ej: Registro de Factura de Venta No. 001" required></div>
         </div>
 
-        <div class="form-grid" style="align-items:end;margin-bottom:10px">
-          <div class="form-group"><label>Tipo de Cambio (Bs$ / USD) para la fecha seleccionada</label>
-            <div style="display:flex;gap:8px">
-              <input type="text" id="tcRate" placeholder="Ej: 8.2300" style="flex:1">
-              <button type="button" class="btn btn-ghost" onclick="guardarTipoCambio()">Guardar TC</button>
-            </div>
-            <div class="small" id="tcInfo"></div>
-          </div>
-          <div class="form-group"><label>Moneda del asiento</label>
-            <select id="asMoneda"><option value="USD">USD</option><option value="BS">Bs$</option></select>
-          </div>
-        </div>
-
+        <!-- Se eliminó aquí el bloque de Tipo de Cambio y Moneda solicitado -->
         <h4>Movimientos Contables (Mínimo 2 Líneas)</h4>
         <table>
-          <thead><tr><th style="width:40%">Cuenta Contable</th><th>Débito ($)</th><th>Crédito ($)</th><th></th></tr></thead>
+          <thead><tr>
+            <th>Fecha</th>
+            <th>RIF</th>
+            <th>Concepto</th>
+            <th style="width:30%">Cuenta Contable</th>
+            <th>Débito</th>
+            <th>Crédito</th>
+            <th></th>
+          </tr></thead>
           <tbody id="tbodyAsiento"></tbody>
         </table>
         <div class="toolbar" style="margin-top:15px">
@@ -209,7 +221,7 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
         <button class="btn btn-ghost" style="padding:6px 12px;font-size:.8rem" onclick="cargarSeleccionado()">&#9998; Modificar asiento seleccionado</button>
       </div>
       <table>
-        <thead><tr><th>Asiento</th><th>Fecha</th><th>TC (Bs$)</th><th>Concepto</th><th>Tercero</th><th>Código</th><th>Cuenta</th><th>Débito ($)</th><th>Crédito ($)</th><th>Estado</th><th>Acción</th></tr></thead>
+        <thead><tr><th>Asiento</th><th>Fecha</th><th>Concepto</th><th>Tercero</th><th>Código</th><th>Cuenta</th><th>Débito</th><th>Crédito</th><th>Estado</th><th>Acción</th></tr></thead>
         <tbody id="tbodyDiario"></tbody>
       </table>
     </div>
@@ -251,7 +263,7 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
     <h2>Libro Mayor y Saldos Acumulados</h2>
     <p class="small">Consolidación de movimientos por cuenta con saldos reales según su naturaleza.</p>
     <table>
-      <thead><tr><th>Código</th><th>Cuenta</th><th>Tipo</th><th>Total Débitos ($)</th><th>Total Créditos ($)</th><th>Saldo Actual ($)</th><th>Acción</th></tr></thead>
+      <thead><tr><th>Código</th><th>Cuenta</th><th>Tipo</th><th>Total Débitos</th><th>Total Créditos</th><th>Saldo Actual</th><th>Acción</th></tr></thead>
       <tbody id="tbodyMayor"></tbody>
     </table>
   </div>
@@ -322,11 +334,11 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
     <p class="small">Generación automática de soportes para auditoría de impuestos en tiempo real.</p>
     <div class="card-box">
       <h3>Libro de Ventas (Soporte Fiscal)</h3>
-      <table><thead><tr><th>Fecha</th><th>Asiento</th><th>Tercero/Cliente</th><th>Concepto</th><th>Base Imponible ($)</th></tr></thead><tbody id="tbodyVentas"></tbody></table>
+      <table><thead><tr><th>Fecha</th><th>Asiento</th><th>Tercero/Cliente</th><th>Concepto</th><th>Base Imponible</th></tr></thead><tbody id="tbodyVentas"></tbody></table>
     </div>
     <div class="card-box">
       <h3>Libro de Compras (Soporte Fiscal)</h3>
-      <table><thead><tr><th>Fecha</th><th>Asiento</th><th>Tercero/Proveedor</th><th>Concepto</th><th>Monto Deducible ($)</th></tr></thead><tbody id="tbodyCompras"></tbody></table>
+      <table><thead><tr><th>Fecha</th><th>Asiento</th><th>Tercero/Proveedor</th><th>Concepto</th><th>Monto Deducible</th></tr></thead><tbody id="tbodyCompras"></tbody></table>
     </div>
   </div>
 
@@ -357,7 +369,7 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
           <div class="form-group"><label>Tipo de Movimiento</label><select id="mTipo"><option value="ENTRADA">Entrada (Compra / Producción)</option><option value="SALIDA">Salida (Venta / Consumo)</option><option value="AJUSTE">Ajuste por Diferencia (+)</option></select></div>
           <div class="form-group"><label>Concepto / Referencia</label><input type="text" id="mConcepto" placeholder="Ej: Compra Factura N° 045" required></div>
           <div class="form-group"><label>Cantidad</label><input type="number" id="mCantidad" min="0" step="any" required></div>
-          <div class="form-group"><label>Costo Unitario ($)</label><input type="text" id="mCosto" placeholder="Ej: 2.50" required></div>
+          <div class="form-group"><label>Costo Unitario</label><input type="text" id="mCosto" placeholder="Ej: 2.50" required></div>
         </div>
         <button type="submit" class="btn">Registrar Movimiento</button>
         <span class="small" id="invHint" style="margin-left:12px"></span>
@@ -366,12 +378,12 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
 
     <div class="card-box">
       <h3>Balance de Inventario Valorado (Existencias en Tiempo Real)</h3>
-      <table><thead><tr><th>Código</th><th>Producto</th><th>Unidad</th><th>Entradas</th><th>Salidas</th><th>Stock Actual</th><th>Costo Unit. Prom. ($)</th><th>Valor Total ($)</th><th>Estado</th><th>Kardex</th><th></th></tr></thead><tbody id="tbodyExistencias"></tbody><tfoot></tfoot></table>
+      <table><thead><tr><th>Código</th><th>Producto</th><th>Unidad</th><th>Entradas</th><th>Salidas</th><th>Stock Actual</th><th>Costo Unit. Prom.</th><th>Valor Total</th><th>Estado</th><th>Kardex</th><th></th></tr></thead><tbody id="tbodyExistencias"></tbody><tfoot></tfoot></table>
     </div>
 
     <div class="card-box">
       <h3>Movimientos del Libro de Inventario</h3>
-      <table><thead><tr><th>Fecha</th><th>Código</th><th>Producto</th><th>Tipo</th><th>Concepto</th><th>Cantidad</th><th>Costo Unit. ($)</th><th>Valor ($)</th><th>Stock Actual</th><th></th></tr></thead><tbody id="tbodyMovInv"></tbody></table>
+      <table><thead><tr><th>Fecha</th><th>Código</th><th>Producto</th><th>Tipo</th><th>Concepto</th><th>Cantidad</th><th>Costo Unit.</th><th>Valor</th><th>Stock Actual</th><th></th></tr></thead><tbody id="tbodyMovInv"></tbody></table>
     </div>
   </div>
 
@@ -584,7 +596,6 @@ function initDB(){
     DB = { catalogo: CUENTAS_INICIALES.map(c=>({...c})), diario: [], nextId:1, exchangeRates: {}, cierres: [], inventario: {productos:[], movimientos:[], movSeq:0} };
     saveDB();
   } else {
-    // ensure exchangeRates and cierres exist
     DB.exchangeRates = DB.exchangeRates || {};
     DB.cierres = DB.cierres || [];
     DB.inventario = DB.inventario || {productos:[], movimientos:[], movSeq:0};
@@ -607,7 +618,7 @@ function strToCents(s){
   if(frac.length<=2){ cents = parseInt(intPart,10)*100 + parseInt((frac+'00').slice(0,2),10); }
   else{
     const third = parseInt(frac[2],10);
-    cents = parseInt(intPart,10)*100 + parseInt(frac.slice(0,2),10) + (third>=5?1:0); // redondeo medio arriba
+    cents = parseInt(intPart,10)*100 + parseInt(frac.slice(0,2),10) + (third>=5?1:0);
   }
   return neg ? -cents : cents;
 }
@@ -639,17 +650,16 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 
 /* ============================ 5. LIBRO DIARIO ============================ */
 let editandoAsiento = null;
-
 function siguienteAsiento(){
   let max = 0;
   for(const m of DB.diario) if(m.asiento_num>max) max = m.asiento_num;
   return max+1;
 }
 
-/* Exchange Rate helpers */
-function guardarTipoCambio(){
-  const fecha = document.getElementById('asFecha').value;
-  const rateRaw = document.getElementById('tcRate').value.trim();
+/* Exchange Rate helpers (ahora manejados desde la sección externa "Gestor de Tipo de Cambio") */
+function guardarTipoCambioManual(){
+  const fecha = document.getElementById('manualTCFecha').value;
+  const rateRaw = document.getElementById('manualTCRate').value.trim();
   if(!fecha){ showAlert('Seleccione la fecha antes de guardar el tipo de cambio.','error'); return; }
   if(!rateRaw){ showAlert('Introduzca un valor de tipo de cambio válido.','error'); return; }
   const rate = parseFloat(rateRaw);
@@ -657,31 +667,36 @@ function guardarTipoCambio(){
   DB.exchangeRates[fecha] = rate;
   saveDB();
   updateTcInfoForDate(fecha);
-  showAlert(`Tipo de cambio Bs$ ${rate.toFixed(4)} guardado para ${fecha}.`,'success');
+  showAlert(`Tipo de cambio Bs ${rate.toFixed(4)} guardado para ${fecha}.`,'success');
 }
 function getExchangeRateForDate(fecha){
   return DB.exchangeRates && DB.exchangeRates[fecha] ? DB.exchangeRates[fecha] : null;
 }
 function updateTcInfoForDate(fecha){
   const r = getExchangeRateForDate(fecha);
-  const el = document.getElementById('tcInfo');
-  if(r){
-    el.textContent = `TC registrado: Bs$ ${Number(r).toFixed(4)} para ${fecha}`;
-    document.getElementById('tcRate').value = Number(r).toFixed(4);
-  } else {
-    el.textContent = `No hay TC registrado para ${fecha}. Puedes ingresar uno y pulsar Guardar TC.`;
-    document.getElementById('tcRate').value = '';
+  const el = document.getElementById('manualTcInfo');
+  if(el){
+    if(r){
+      el.textContent = `TC registrado: Bs ${Number(r).toFixed(4)} para ${fecha}`;
+      // no hay input tcRate en el libro diario; mostramos en gestor externo
+    } else {
+      el.textContent = `No hay TC registrado para ${fecha}. Puedes ingresar uno en el Gestor de Tipo de Cambio.`;
+    }
   }
 }
 
-/* Asiento row template */
+/* Asiento row template: añadidos mov_fecha, mov_tercero (rif), mov_concepto */
 function filaAsientoHTML(){
   const opts = DB.catalogo.slice().sort((a,b)=>a.tipo_indice-b.tipo_indice)
     .map(c=>`<option value="${c.codigo}">${c.codigo} - ${c.nombre} (${c.tipo_cuenta})</option>`).join('');
+  const today = (document.getElementById && document.getElementById('asFecha')) ? document.getElementById('asFecha').value : '';
   return `<tr>
+    <td><input type="date" class="asMovFecha" value="${today}"></td>
+    <td><input type="text" class="asMovRif" placeholder="Ej: J-12345678-0"></td>
+    <td><input type="text" class="asMovConcepto" placeholder="Concepto línea"></td>
     <td><select class="asCuenta" required><option value="">-- Seleccionar Cuenta --</option>${opts}</select></td>
     <td><input type="text" class="asDeb" inputmode="decimal" value="0.00"></td>
-    <td><input type="text" class="asCred" class="asCred" inputmode="decimal" value="0.00"></td>
+    <td><input type="text" class="asCred" inputmode="decimal" value="0.00"></td>
     <td><button type="button" class="btn btn-danger" style="padding:6px 10px;font-size:.75rem" onclick="this.closest('tr').remove();actualizarLiveTotals()">✕</button></td>
   </tr>`;
 }
@@ -692,8 +707,10 @@ function agregarFilaAsiento(){
 function actualizarLiveTotals(){
   let td=0, tc=0;
   document.querySelectorAll('#tbodyAsiento tr').forEach(tr=>{
-    td += strToCents(tr.querySelector('.asDeb').value);
-    tc += strToCents(tr.querySelector('.asCred').value);
+    const debEl = tr.querySelector('.asDeb');
+    const credEl = tr.querySelector('.asCred');
+    td += strToCents(debEl ? debEl.value : 0);
+    tc += strToCents(credEl ? credEl.value : 0);
   });
   document.getElementById('liveDeb').textContent = centsToStr(td);
   document.getElementById('liveCred').textContent = centsToStr(tc);
@@ -704,27 +721,29 @@ document.getElementById('asFecha').addEventListener('change', (e)=>{
   updateTcInfoForDate(e.target.value);
 });
 
+/* Form submit: guarda mov_fecha, mov_tercero, mov_concepto en cada línea y actualiza Mayor/Libros Fiscales en renderAll */
 document.getElementById('formAsiento').addEventListener('submit', function(e){
   e.preventDefault();
   const fecha = document.getElementById('asFecha').value;
-  const tercero = document.getElementById('asTercero').value.trim();
   const concepto = document.getElementById('asConcepto').value.trim();
-  const moneda = document.getElementById('asMoneda').value || 'USD';
-  if(!fecha || !tercero || !concepto){ showAlert('Complete todos los campos del encabezado del asiento.','error'); return; }
+  if(!fecha || !concepto){ showAlert('Complete todos los campos del encabezado del asiento.','error'); return; }
 
   let totalDeb=0, totalCred=0;
   const lineas=[];
   document.querySelectorAll('#tbodyAsiento tr').forEach(tr=>{
-    const cod = tr.querySelector('.asCuenta').value;
+    const cod = tr.querySelector('.asCuenta') ? tr.querySelector('.asCuenta').value : '';
     if(!cod) return;
     const d = strToCents(tr.querySelector('.asDeb').value);
     const c = strToCents(tr.querySelector('.asCred').value);
-    if(d>0 || c>0){ totalDeb+=d; totalCred+=c; lineas.push({codigo:cod, debito_centavos:d, credito_centavos:c}); }
+    const movFecha = tr.querySelector('.asMovFecha') ? tr.querySelector('.asMovFecha').value : fecha;
+    const movRif = tr.querySelector('.asMovRif') ? tr.querySelector('.asMovRif').value.trim() : '';
+    const movConcepto = tr.querySelector('.asMovConcepto') ? tr.querySelector('.asMovConcepto').value.trim() : '';
+    if(d>0 || c>0){ totalDeb+=d; totalCred+=c; lineas.push({codigo:cod, debito_centavos:d, credito_centavos:c, mov_fecha:movFecha, mov_tercero:movRif, mov_concepto:movConcepto}); }
   });
 
   if(lineas.length<2){ showAlert('Un asiento contable requiere al menos 2 movimientos con monto.','error'); return; }
   if(totalDeb !== totalCred){
-    showAlert(`Error de Partida Doble: Débito ($${centsToStr(totalDeb)}) ≠ Crédito ($${centsToStr(totalCred)}).`,'error');
+    showAlert(`Error de Partida Doble: Débito (${centsToStr(totalDeb)}) ≠ Crédito (${centsToStr(totalCred)}).`,'error');
     return;
   }
 
@@ -734,12 +753,13 @@ document.getElementById('formAsiento').addEventListener('submit', function(e){
     const origNum = editandoAsiento;
     const orig = DB.diario.filter(m=>m.asiento_num===origNum && m.estado==='ACTIVO');
     if(!orig.length){ showAlert('El asiento #'+origNum+' ya no existe. Modificación cancelada.','error'); cancelarEdicion(); return; }
-    /* MODIFICACIÓN DIRECTA: se reemplazan las líneas del asiento conservando su número.
-       No se genera reverso ni asiento nuevo. */
     DB.diario = DB.diario.filter(m=>!(m.asiento_num===origNum && m.estado==='ACTIVO'));
+    const terceroCab = (lineas[0] && lineas[0].mov_tercero) ? lineas[0].mov_tercero : '';
     for(const l of lineas){
-      DB.diario.push({ id:DB.nextId++, asiento_num:origNum, fecha, concepto, tercero,
-        codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO', moneda, exchange_rate_bs:tc });
+      DB.diario.push({ id:DB.nextId++, asiento_num:origNum, fecha, concepto, tercero:terceroCab,
+        codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO',
+        exchange_rate_bs:tc,
+        mov_fecha: l.mov_fecha, mov_tercero: l.mov_tercero, mov_concepto: l.mov_concepto });
     }
     saveDB();
     cancelarEdicion();
@@ -749,9 +769,12 @@ document.getElementById('formAsiento').addEventListener('submit', function(e){
   }
 
   const num = siguienteAsiento();
+  const terceroCab = (lineas[0] && lineas[0].mov_tercero) ? lineas[0].mov_tercero : '';
   for(const l of lineas){
-    DB.diario.push({ id:DB.nextId++, asiento_num:num, fecha, concepto, tercero,
-      codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO', moneda, exchange_rate_bs:tc });
+    DB.diario.push({ id:DB.nextId++, asiento_num:num, fecha, concepto, tercero:terceroCab,
+      codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO',
+      exchange_rate_bs:tc,
+      mov_fecha: l.mov_fecha, mov_tercero: l.mov_tercero, mov_concepto: l.mov_concepto });
   }
   saveDB();
   this.reset();
@@ -768,17 +791,21 @@ function cargarEdicion(num){
   editandoAsiento = num;
   const primero = movs[0];
   document.getElementById('asFecha').value = primero.fecha;
-  document.getElementById('asTercero').value = primero.tercero;
   document.getElementById('asConcepto').value = primero.concepto;
-  document.getElementById('asMoneda').value = primero.moneda || 'USD';
   document.getElementById('numAsientoLabel').textContent = 'MODIFICANDO #'+num;
   document.getElementById('btnSubmitAsiento').textContent = 'Guardar Modificación (Reverso Automático)';
   document.getElementById('btnCancelarEdicion').style.display='';
   document.getElementById('tbodyAsiento').innerHTML = '';
   for(const m of movs){
+    const mvFecha = m.mov_fecha || m.fecha;
+    const mvRif = m.mov_tercero || m.tercero || '';
+    const mvConcept = m.mov_concepto || m.concepto || '';
     const opts = DB.catalogo.slice().sort((a,b)=>a.tipo_indice-b.tipo_indice)
       .map(x=>`<option value="${x.codigo}" ${x.codigo===m.codigo_cuenta?'selected':''}>${x.codigo} - ${x.nombre} (${x.tipo_cuenta})</option>`).join('');
     document.getElementById('tbodyAsiento').insertAdjacentHTML('beforeend', `<tr>
+      <td><input type="date" class="asMovFecha" value="${mvFecha}"></td>
+      <td><input type="text" class="asMovRif" value="${mvRif}"></td>
+      <td><input type="text" class="asMovConcepto" value="${mvConcept}"></td>
       <td><select class="asCuenta" required><option value="">-- Seleccionar Cuenta --</option>${opts}</select></td>
       <td><input type="text" class="asDeb" inputmode="decimal" value="${centsToStr(m.debito_centavos)}"></td>
       <td><input type="text" class="asCred" inputmode="decimal" value="${centsToStr(m.credito_centavos)}"></td>
@@ -824,13 +851,10 @@ window.cargarEdicion = cargarEdicion;
 window.cancelarEdicion = cancelarEdicion;
 
 /* ============================ 6. CATÁLOGO ============================ */
-
-/* Retorna el siguiente índice correlativo disponible para cuentas */
 function siguienteIndiceCuenta(){
   if(!DB || !Array.isArray(DB.catalogo) || DB.catalogo.length===0) return 1;
   return DB.catalogo.reduce((max,c)=>Math.max(max, Number(c.tipo_indice||0)),0) + 1;
 }
-/* Genera y coloca el índice en el formulario */
 function generarIndiceCuenta(){
   const el = document.getElementById('cIndice');
   if(!el) return;
@@ -854,7 +878,7 @@ document.getElementById('formCuenta').addEventListener('submit', function(e){
   DB.catalogo.push(cuenta);
   saveDB();
   this.reset();
-  generarIndiceCuenta(); // autocompletar el siguiente índice al resetear
+  generarIndiceCuenta();
   showAlert(`Cuenta ${cuenta.codigo} - ${cuenta.nombre} agregada con éxito al catálogo NIC.`,'success');
   renderAll();
 });
@@ -862,16 +886,24 @@ document.getElementById('formCuenta').addEventListener('submit', function(e){
 /* ============================ 7. RENDERIZADO GENERAL Y DETALLES EN ESTADOS ============================ */
 function cuentaByCodigo(cod){ return DB.catalogo.find(c=>c.codigo===cod); }
 
+function formatDateShort(isoDate){
+  // espera 'YYYY-MM-DD' -> devuelve 'DD/MM/YY'
+  if(!isoDate || typeof isoDate !== 'string') return isoDate || '';
+  const parts = isoDate.split('-');
+  if(parts.length<3) return isoDate;
+  const yy = parts[0].slice(2);
+  return `${parts[2]}/${parts[1]}/${yy}`;
+}
+
 function renderAll(){
   renderInventario();
-  /* Libro Diario */
   document.getElementById('numAsientoLabel').textContent = '#'+siguienteAsiento();
   const movs = DB.diario.slice().sort((a,b)=> b.asiento_num-a.asiento_num || a.id-b.id);
   const asientosActivosLista = DB.diario.filter(m=>m.estado==='ACTIVO');
   const asientosUnicos = [...new Map(asientosActivosLista.map(m=>[m.asiento_num,m])).values()];
   const selAsiento = document.getElementById('selAsiento');
   if(selAsiento) selAsiento.innerHTML = '<option value="">-- Seleccionar asiento a modificar --</option>' +
-    asientosUnicos.map(m=>`<option value="${m.asiento_num}">#${m.asiento_num} · ${m.fecha} · ${m.concepto} — ${m.tercero}</option>`).join('');
+    asientosUnicos.map(m=>`<option value="${m.asiento_num}">#${m.asiento_num} · ${m.fecha} · ${m.concepto} — ${m.tercero || ''}</option>`).join('');
   const vistosAsientos = new Set();
   document.getElementById('tbodyDiario').innerHTML = movs.map(m=>{
     const esPrimera = !vistosAsientos.has(m.asiento_num);
@@ -879,9 +911,8 @@ function renderAll(){
     const c = cuentaByCodigo(m.codigo_cuenta);
     return `<tr>
       <td><strong>#${m.asiento_num}</strong></td>
-      <td>${m.fecha}</td>
-      <td>${m.exchange_rate_bs?Number(m.exchange_rate_bs).toFixed(4):'-'}</td>
-      <td>${m.concepto}</td><td>${m.tercero}</td>
+      <td>${formatDateShort(m.fecha)}</td>
+      <td>${m.concepto}</td><td>${m.tercero || (m.mov_tercero||'')}</td>
       <td class="mono">${m.codigo_cuenta}</td><td>${c?c.nombre:'—'}</td>
       <td class="num-deb">${centsToStr(m.debito_centavos)}</td>
       <td class="num-cred">${centsToStr(m.credito_centavos)}</td>
@@ -903,7 +934,7 @@ function renderAll(){
       <td>${c.ubicacion_estado}</td><td>${c.indicador_libro}</td><td>${c.seccion_destino}</td>
     </tr>`).join('');
 
-  /* Preparar índice de asientos por cuenta para permitir edición desde el Mayor */
+  /* Índice de asientos por cuenta */
   const asientosPorCuenta = {};
   for(const entry of DB.diario){
     if(entry.estado !== 'ACTIVO') continue;
@@ -931,8 +962,7 @@ function renderAll(){
     </tr>`;
   }).join('');
 
-  /* Estados Financieros - ahora con detalle por cuentas */
-  // Agrupar por tipo
+  /* Estados Financieros */
   const grupoPorTipo = {};
   for(const c of mayor){ grupoPorTipo[c.tipo_cuenta] = grupoPorTipo[c.tipo_cuenta] || []; grupoPorTipo[c.tipo_cuenta].push(c); }
 
@@ -951,27 +981,23 @@ function renderAll(){
     }).join('');
   }
 
-  // ER: Ingresos / Costos / Gastos (incluye "Egreso" como parte de Gastos)
   const gastosCombined = (grupoPorTipo['Gasto']||[]).concat(grupoPorTipo['Egreso']||[]);
   document.querySelector('#er_ing_table tbody').innerHTML = renderTableRows(grupoPorTipo['Ingreso']);
   document.querySelector('#er_cost_table tbody').innerHTML = renderTableRows(grupoPorTipo['Costo']);
   document.querySelector('#er_gas_table tbody').innerHTML = renderTableRows(gastosCombined);
 
-  // Totales ER (sumando 'Gasto' + 'Egreso')
   const sumType = t => mayor.filter(m=>m.tipo_cuenta===t).reduce((a,m)=>a+m.saldo,0);
   const ingresos = sumType('Ingreso'), costos = sumType('Costo'), gastos = sumType('Gasto') + sumType('Egreso');
   const utilidad = ingresos - costos - gastos;
-  document.getElementById('erIng').textContent = centsToStr(ingresos)+' $';
-  document.getElementById('erCost').textContent = '('+centsToStr(costos)+') $';
-  document.getElementById('erGas').textContent = '('+centsToStr(gastos)+') $';
-  document.getElementById('erUtil').textContent = centsToStr(utilidad)+' $';
+  document.getElementById('erIng').textContent = centsToStr(ingresos);
+  document.getElementById('erCost').textContent = '('+centsToStr(costos)+')';
+  document.getElementById('erGas').textContent = '('+centsToStr(gastos)+')';
+  document.getElementById('erUtil').textContent = centsToStr(utilidad);
 
-  // BG: Activos / Pasivos / Patrimonio en Formato NIC (Corriente / No Corriente)
   const activos = mayor.filter(m=>m.tipo_cuenta==='Activo');
   const pasivos = mayor.filter(m=>m.tipo_cuenta==='Pasivo');
   const patrimonio = mayor.filter(m=>m.tipo_cuenta==='Patrimonio');
 
-  // Clasificación por "Corriente" en seccion_destino (si contiene la palabra 'Corriente' lo toma como corriente)
   const isCorriente = (item) => {
     if(!item || !item.seccion_destino) return false;
     return /corriente/i.test(item.seccion_destino);
@@ -998,19 +1024,17 @@ function renderAll(){
 
   const totalActivos = totalActivosCorr + totalActivosNoCorr;
   const totalPasivos = totalPasivosCorr + totalPasivosNoCorr;
-  const patTotal = totalPatrimonio + utilidad; // patrimonio + resultados
+  const patTotal = totalPatrimonio + utilidad;
   const pmp = totalPasivos + patTotal;
 
-  // Mostrar totales principales
-  document.getElementById('bgAct').textContent = centsToStr(totalActivos)+' $';
-  document.getElementById('bgPas').textContent = centsToStr(totalPasivos)+' $';
-  document.getElementById('bgPat').textContent = centsToStr(patTotal)+' $';
-  document.getElementById('bgPMP').textContent = centsToStr(pmp)+' $';
+  document.getElementById('bgAct').textContent = centsToStr(totalActivos);
+  document.getElementById('bgPas').textContent = centsToStr(totalPasivos);
+  document.getElementById('bgPat').textContent = centsToStr(patTotal);
+  document.getElementById('bgPMP').textContent = centsToStr(pmp);
   document.getElementById('bgCheck').innerHTML = (totalActivos===pmp)
     ? '<div class="alert alert-success" style="text-align:center;margin:0">✔ BALANCE CUADRADO PERFECTO (Activo = Pasivo + Patrimonio)</div>'
     : '<div class="alert alert-error" style="text-align:center;margin:0">✖ DESBALANCE DETECTADO EN AUDITORÍA</div>';
 
-  // Rellenar tfoot de cada tabla con subtotal si existe
   function setTfoot(tableId, subtotalCents){
     const table = document.getElementById(tableId);
     const tfoot = table.querySelector('tfoot');
@@ -1023,18 +1047,20 @@ function renderAll(){
   setTfoot('bg_pas_nc_table', totalPasivosNoCorr);
   setTfoot('bg_pat_table', totalPatrimonio);
 
-  /* Libros Fiscales: números de asiento como enlaces para editar */
+  /* Libros Fiscales: usar mov_fecha / mov_tercero / mov_concepto si existen */
   const fiscalRows = indicador => DB.diario
     .filter(m=>{ const c=cuentaByCodigo(m.codigo_cuenta); return c && c.indicador_libro===indicador && m.estado==='ACTIVO' && ((indicador==='Libro de Ventas'&&m.credito_centavos>0)||(indicador==='Libro de Compras'&&m.debito_centavos>0)); })
     .sort((a,b)=>a.asiento_num-b.asiento_num)
     .map(m=>{
       const monto = indicador==='Libro de Ventas' ? m.credito_centavos : m.debito_centavos;
-      return `<tr><td>${m.fecha}</td><td><a href="#" onclick="cargarEdicion(${m.asiento_num});return false">#${m.asiento_num}</a></td><td>${m.tercero}</td><td>${m.concepto}</td><td><strong>${centsToStr(monto)}</strong></td></tr>`;
+      const fechaMov = m.mov_fecha || m.fecha;
+      const terceroMov = m.mov_tercero || m.tercero || '';
+      const conceptoMov = m.mov_concepto || m.concepto || '';
+      return `<tr><td>${fechaMov}</td><td><a href="#" onclick="cargarEdicion(${m.asiento_num});return false">#${m.asiento_num}</a></td><td>${terceroMov}</td><td>${conceptoMov}</td><td><strong>${centsToStr(monto)}</strong></td></tr>`;
     }).join('') || '<tr><td colspan="5" class="small">Sin registros fiscales.</td></tr>';
   document.getElementById('tbodyVentas').innerHTML = fiscalRows('Libro de Ventas');
   document.getElementById('tbodyCompras').innerHTML = fiscalRows('Libro de Compras');
 
-  /* Render Cierres list */
   document.getElementById('tbodyCierres').innerHTML = DB.cierres.slice().sort((a,b)=>b.id-a.id).map(c=>{
     return `<tr><td>${c.tipo}</td><td>${c.periodo}</td><td>#${c.asiento_num}</td><td>${c.fecha}</td><td>${c.estado}</td><td>${c.estado==='ACTIVO'?`<button class="btn btn-ghost" onclick="eliminarCierre(${c.id})">Eliminar</button>`:'—'}</td></tr>`;
   }).join('') || '<tr><td colspan="6" class="small">No hay cierres registrados.</td></tr>';
@@ -1051,16 +1077,16 @@ function showAccountDetails(codigo){
     document.getElementById('modalContent').innerHTML = '<div class="small">No hay movimientos para esta cuenta.</div>';
   }else{
     const rows = movimientos.map(m=>`<tr>
-      <td>${m.fecha}</td>
+      <td>${m.mov_fecha || m.fecha}</td>
       <td><a href="#" onclick="cargarEdicion(${m.asiento_num});closeAccountModal();return false">#${m.asiento_num}</a></td>
-      <td class="mono">${m.tercero}</td>
-      <td>${m.concepto}</td>
+      <td class="mono">${m.mov_tercero || m.tercero || ''}</td>
+      <td>${m.mov_concepto || m.concepto || ''}</td>
       <td class="num-deb">${centsToStr(m.debito_centavos)}</td>
       <td class="num-cred">${centsToStr(m.credito_centavos)}</td>
       <td>${m.estado}</td>
       <td>TC: ${m.exchange_rate_bs?Number(m.exchange_rate_bs).toFixed(4):'-'}</td>
     </tr>`).join('');
-    document.getElementById('modalContent').innerHTML = `<table><thead><tr><th>Fecha</th><th>Asiento</th><th>Tercero</th><th>Concepto</th><th>Débito</th><th>Crédito</th><th>Estado</th><th>TC (Bs$)</th></tr></thead><tbody>${rows}</tbody></table>`;
+    document.getElementById('modalContent').innerHTML = `<table><thead><tr><th>Fecha</th><th>Asiento</th><th>Tercero</th><th>Concepto</th><th>Débito</th><th>Crédito</th><th>Estado</th><th>TC (Bs)</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
   document.getElementById('accountModal').classList.add('active');
   document.getElementById('accountModal').setAttribute('aria-hidden','false');
@@ -1071,8 +1097,8 @@ function closeAccountModal(){
 }
 
 /* ============================ 9. CIERRES: Lógica de Cierre Mensual / Anual ============================ */
+/* (funciones de cierre mantienen la lógica original; usan campos estándar) */
 
-/* Ensure existence of resultados account (3999) */
 function ensureResultadosAccount(){
   let acct = DB.catalogo.find(c=>c.codigo==='3999');
   if(!acct){
@@ -1083,23 +1109,17 @@ function ensureResultadosAccount(){
   }
   return false;
 }
-
-/* form helpers to get last day of month */
 function lastDayOfMonth(y,m){
-  return new Date(y, m, 0).toISOString().slice(0,10); // m is 1-based
+  return new Date(y, m, 0).toISOString().slice(0,10);
 }
-
-/* Realizar cierre mensual */
 function realizarCierreMensual(){
   const mes = parseInt(document.getElementById('cierreMes').value,10);
   const year = parseInt(document.getElementById('cierreYear').value,10);
   if(!mes || !year){ showAlert('Seleccione mes y año válidos para el cierre.','error'); return; }
   ensureResultadosAccount();
   const fechaCierre = lastDayOfMonth(year, mes);
-  // filtrar movimientos del periodo (por fecha)
   const start = new Date(year, mes-1, 1).toISOString().slice(0,10);
   const end = fechaCierre;
-  // sumar saldos por cuenta dentro del periodo (solo ACTIVO)
   const movimientosPeriodo = DB.diario.filter(m=>m.estado==='ACTIVO' && m.fecha>=start && m.fecha<=end);
   const saldosPorCuenta = {};
   for(const mov of movimientosPeriodo){
@@ -1107,50 +1127,36 @@ function realizarCierreMensual(){
     saldosPorCuenta[mov.codigo_cuenta].deb += mov.debito_centavos;
     saldosPorCuenta[mov.codigo_cuenta].cred += mov.credito_centavos;
   }
-  // construir líneas de cierre
   const lines = [];
   let totalIngresos = 0, totalCostos = 0, totalGastos = 0;
   for(const acc of DB.catalogo){
     const s = saldosPorCuenta[acc.codigo] || {deb:0,cred:0};
     const saldo = acc.naturaleza==='Débito' ? s.deb - s.cred : s.cred - s.deb;
     if(acc.tipo_cuenta==='Ingreso' && saldo>0){
-      // Ingresos normalmente tienen saldo crédito -> para cerrar se debita la cuenta por su saldo crediticio
       lines.push({codigo:acc.codigo, debito_centavos: saldo, credito_centavos:0});
       totalIngresos += saldo;
     }
     if((acc.tipo_cuenta==='Costo' || acc.tipo_cuenta==='Gasto' || acc.tipo_cuenta==='Egreso') && saldo>0){
-      // Gastos/costos/egresos normalmente tienen saldo débito -> para cerrar se acredita la cuenta por su saldo debit
       lines.push({codigo:acc.codigo, debito_centavos:0, credito_centavos: saldo});
       if(acc.tipo_cuenta==='Costo') totalCostos += saldo;
-      else totalGastos += saldo; // incluye Gasto y Egreso
+      else totalGastos += saldo;
     }
   }
-  const net = totalIngresos - totalCostos - totalGastos; // en centavos
-  // compute balancing line to 3999 (Resultados)
-  if(net>0){
-    // beneficio: creditar resultados
-    lines.push({codigo:'3999', debito_centavos:0, credito_centavos: net});
-  } else if(net<0){
-    lines.push({codigo:'3999', debito_centavos: Math.abs(net), credito_centavos:0});
-  } else {
-    // net = 0 -> no se detecta movimiento neto
-  }
+  const net = totalIngresos - totalCostos - totalGastos;
+  if(net>0) lines.push({codigo:'3999', debito_centavos:0, credito_centavos: net});
+  else if(net<0) lines.push({codigo:'3999', debito_centavos: Math.abs(net), credito_centavos:0});
   if(lines.length<2){ showAlert('No se detectaron saldos temporales en el periodo. Cierre no necesario.','error'); return; }
-  // registrar asiento de cierre con fecha = último día del mes, attach exchange rate if available
   const tc = getExchangeRateForDate(fechaCierre);
   const num = siguienteAsiento();
   for(const l of lines){
-    DB.diario.push({ id:DB.nextId++, asiento_num:num, fecha:fechaCierre, concepto:`CIERRE MENSUAL ${year}-${String(mes).padStart(2,'0')}`, tercero:'CIERRE', codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO', moneda:'USD', exchange_rate_bs:tc });
+    DB.diario.push({ id:DB.nextId++, asiento_num:num, fecha:fechaCierre, concepto:`CIERRE MENSUAL ${year}-${String(mes).padStart(2,'0')}`, tercero:'CIERRE', codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO', exchange_rate_bs:tc });
   }
-  // registrar cierre en DB.cierres
   const cierre = { id: DB.cierres.length?DB.cierres[DB.cierres.length-1].id+1:1, tipo:'MENSUAL', periodo:`${String(mes).padStart(2,'0')}/${year}`, fecha:fechaCierre, asiento_num:num, estado:'ACTIVO' };
   DB.cierres.push(cierre);
   saveDB();
   showAlert(`Cierre mensual registrado: Asiento #${num} (Periodo ${cierre.periodo}).`,'success');
   renderAll();
 }
-
-/* Eliminar cierre: elimina el asiento contable del cierre por completo y marca el cierre */
 function eliminarCierre(id){
   const cierre = DB.cierres.find(c=>c.id===id);
   if(!cierre){ showAlert('Cierre no encontrado.','error'); return; }
@@ -1162,8 +1168,6 @@ function eliminarCierre(id){
   showAlert(`Cierre ${cierre.periodo} eliminado junto con su asiento #${cierre.asiento_num}.`,'success');
   renderAll();
 }
-
-/* Cierre anual: aplica sobre todo el año */
 function realizarCierreAnual(){
   const year = parseInt(document.getElementById('cierreYearAnnual').value,10);
   if(!year){ showAlert('Introduzca un año válido.','error'); return; }
@@ -1200,7 +1204,7 @@ function realizarCierreAnual(){
   const tc = getExchangeRateForDate(fechaCierre);
   const num = siguienteAsiento();
   for(const l of lines){
-    DB.diario.push({ id:DB.nextId++, asiento_num:num, fecha:fechaCierre, concepto:`CIERRE ANUAL ${year}`, tercero:'CIERRE ANUAL', codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO', moneda:'USD', exchange_rate_bs:tc });
+    DB.diario.push({ id:DB.nextId++, asiento_num:num, fecha:fechaCierre, concepto:`CIERRE ANUAL ${year}`, tercero:'CIERRE ANUAL', codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO', exchange_rate_bs:tc });
   }
   const cierre = { id: DB.cierres.length?DB.cierres[DB.cierres.length-1].id+1:1, tipo:'ANUAL', periodo:`${year}`, fecha:fechaCierre, asiento_num:num, estado:'ACTIVO' };
   DB.cierres.push(cierre);
@@ -1240,7 +1244,7 @@ function actualizarHintInventario(){
   const cod = codEl.value;
   if(!cod){ hint.textContent=''; return; }
   const ex = existenciaProducto(cod);
-  hint.textContent = `Stock disponible: ${ex.stock} · Costo promedio actual: $${centsToStr(ex.costoPromCents)}`;
+  hint.textContent = `Stock disponible: ${ex.stock} · Costo promedio actual: ${centsToStr(ex.costoPromCents)}`;
 }
 
 document.getElementById('mProducto').addEventListener('change', actualizarHintInventario);
@@ -1306,7 +1310,7 @@ function showKardex(codigo){
   const p = DB.inventario.productos.find(x=>x.codigo===codigo);
   document.getElementById('modalTitle').textContent = `Kardex · ${codigo} - ${p?p.nombre:''}`;
   const ex = existenciaProducto(codigo);
-  document.getElementById('modalSubtitle').textContent = `Unidad: ${p?p.unidad:'—'} · Stock actual: ${ex.stock} · Costo promedio: $${centsToStr(ex.costoPromCents)} · Valor total: $${centsToStr(ex.valorCents)}`;
+  document.getElementById('modalSubtitle').textContent = `Unidad: ${p?p.unidad:'—'} · Stock actual: ${ex.stock} · Costo promedio: ${centsToStr(ex.costoPromCents)} · Valor total: ${centsToStr(ex.valorCents)}`;
   const movs = DB.inventario.movimientos.filter(m=>m.producto===codigo)
     .sort((a,b)=> a.fecha===b.fecha ? a.id-b.id : (a.fecha<b.fecha?-1:1));
   let saldo=0;
@@ -1323,7 +1327,7 @@ function showKardex(codigo){
       <td><button class="btn btn-danger" style="padding:4px 8px;font-size:.75rem" onclick="eliminarMovInv(${m.id})">Eliminar</button></td></tr>`;
   }).join('');
   document.getElementById('modalContent').innerHTML = rows
-    ? `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Entrada</th><th>Salida</th><th>Costo Unit ($)</th><th>Valor ($)</th><th>Saldo Cant.</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+    ? `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Entrada</th><th>Salida</th><th>Costo Unit.</th><th>Valor</th><th>Saldo Cant.</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
     : '<div class="small">Sin movimientos para este producto.</div>';
   document.getElementById('accountModal').classList.add('active');
   document.getElementById('accountModal').setAttribute('aria-hidden','false');
@@ -1347,7 +1351,7 @@ function renderInventario(){
   }).join('');
   document.getElementById('tbodyExistencias').innerHTML = rows || '<tr><td colspan="11" class="small">Sin productos registrados.</td></tr>';
   const tfoot = document.querySelector('#tbodyExistencias').closest('table').querySelector('tfoot');
-  if(tfoot) tfoot.innerHTML = `<tr style="border-top:2px solid var(--accent-gold)"><td colspan="7" style="text-align:right"><strong>VALOR TOTAL DEL INVENTARIO:</strong></td><td colspan="4"><strong class="num-deb">${centsToStr(totalValor)} $</strong></td></tr>`;
+  if(tfoot) tfoot.innerHTML = `<tr style="border-top:2px solid var(--accent-gold)"><td colspan="7" style="text-align:right"><strong>VALOR TOTAL DEL INVENTARIO:</strong></td><td colspan="4"><strong class="num-deb">${centsToStr(totalValor)}</strong></td></tr>`;
   const movRows = DB.inventario.movimientos.slice()
     .sort((a,b)=> a.fecha===b.fecha ? b.id-a.id : (a.fecha<b.fecha?1:-1))
     .map(m=>{
@@ -1368,8 +1372,7 @@ window.eliminarProducto = eliminarProducto;
 window.showKardex = showKardex;
 
 /* ============================ 10. EXPORT (CSV / PDF) ============================ */
-/* (Se mantienen las funciones de export ya implementadas antes) */
-/* Util: extrae filas (array de arrays) desde una tabla con id */
+/* funciones de export mantienen comportamiento original (CSV/PDF) */
 function tableToArray(tableId){
   const table = document.getElementById(tableId);
   if(!table) return {headers:[], rows:[]};
@@ -1561,8 +1564,53 @@ document.getElementById('btnIngresar').addEventListener('click',()=>{
   document.getElementById('splash').classList.add('hidden');
 });
 
+/* ============================ FUNCIONES NIC / CONVERSIÓN MONETARIA ============================ */
+/*
+  nicConvertAmountToBs(amountCentavos, rate)
+  - amountCentavos: entero (centavos) en moneda extranjera (USD)
+  - rate: número (Bs por USD), p. ej. 8.2300
+  Retorna: entero (centavos) en Bs utilizando aritmética entera y redondeo correcto.
+*/
+function nicConvertAmountToBs(amountCentavos, rate){
+  const amt = BigInt(Math.trunc(Number(amountCentavos)));
+  const scaledRate = BigInt(Math.round(Number(rate) * 1000000)); // escala 1e6 para precisión
+  const divisor = BigInt(1000000);
+  // Para redondeo: (amt * scaledRate + divisor/2) / divisor
+  const result = Number((amt * scaledRate + (divisor/2n)) / divisor);
+  return Math.trunc(result); // centavos en Bs
+}
+
+/* aplicarTCNIC: ejemplo de aplicación sobre asientos activos.
+   Recorre asientos activos, agrupa por asiento_num y calcula totales convertidos a Bs si hay TC para la fecha.
+   Muestra un resumen en la sección del Gestor de TC.
+*/
+function aplicarTCNIC(){
+  const asientos = {};
+  for(const m of DB.diario){
+    if(m.estado !== 'ACTIVO') continue;
+    const key = m.asiento_num;
+    asientos[key] = asientos[key] || {fecha: m.fecha, deb:0, cred:0, debBs:0, credBs:0, tc:null};
+    asientos[key].deb += m.debito_centavos;
+    asientos[key].cred += m.credito_centavos;
+  }
+  const lines = [];
+  for(const k of Object.keys(asientos).sort((a,b)=>Number(a)-Number(b))){
+    const a = asientos[k];
+    const tc = getExchangeRateForDate(a.fecha);
+    a.tc = tc;
+    if(tc){
+      a.debBs = nicConvertAmountToBs(a.deb, tc);
+      a.credBs = nicConvertAmountToBs(a.cred, tc);
+      lines.push(`#${k} · ${formatDateShort(a.fecha)} · Déb USD:${centsToStr(a.deb)} → Bs:${centsToStr(a.debBs)} · Cr USD:${centsToStr(a.cred)} → Bs:${centsToStr(a.credBs)} · TC:${tc.toFixed(4)}`);
+    } else {
+      lines.push(`#${k} · ${formatDateShort(a.fecha)} · No hay TC para esta fecha (debe registrarlo en el Gestor).`);
+    }
+  }
+  const el = document.getElementById('manualTcInfo');
+  if(el) el.textContent = lines.length ? lines.join(' | ') : 'No hay asientos activos para procesar con NIC.';
+}
+
 /* ARRANQUE */
-/* Reset controlado: elimina la base actual SOLO LA PRIMERA VEZ que se abre este archivo en este navegador/perfil. */
 if (!localStorage.getItem('equinox_books_reset_done')) {
   localStorage.removeItem(DB_KEY);
   localStorage.setItem('equinox_books_reset_done', '1');
@@ -1572,7 +1620,7 @@ document.getElementById('asFecha').value = new Date().toISOString().slice(0,10);
 document.getElementById('mFecha').value = new Date().toISOString().slice(0,10);
 document.getElementById('tbodyAsiento').innerHTML = filaAsientoHTML()+filaAsientoHTML();
 actualizarLiveTotals();
-generarIndiceCuenta(); // auto-completa el índice correlativo al iniciar
+generarIndiceCuenta();
 updateTcInfoForDate(document.getElementById('asFecha').value);
 renderAll();
 </script>
