@@ -70,6 +70,10 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
 .welcome-hero h2{color:var(--accent-gold);letter-spacing:3px;margin:0 0 10px;font-size:2.2rem}
 .welcome-hero p{color:var(--text-muted);max-width:700px;margin:0 auto;line-height:1.6}
 
+/* Scrollable table container for Asientos Registrados */
+.scroll-container{max-height:360px;overflow:auto;border:1px solid var(--border);border-radius:6px;padding:8px;background:linear-gradient(180deg, rgba(10,15,29,.3), transparent)}
+.scroll-table{min-width:1100px}
+
 /* Modal simple para detalles por cuenta */
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1200}
 .modal-backdrop.active{display:flex}
@@ -219,11 +223,21 @@ pre{background:#050811;color:#38edf8;padding:20px;border-radius:8px;border:1px s
       <div class="toolbar" style="margin-top:10px">
         <select id="selAsiento" style="max-width:360px"></select>
         <button class="btn btn-ghost" style="padding:6px 12px;font-size:.8rem" onclick="cargarSeleccionado()">&#9998; Modificar asiento seleccionado</button>
+        <!-- Buscador por número de asiento -->
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          <input id="searchAsiento" type="text" placeholder="Buscar asiento #n (ej: #1)" style="min-width:160px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-main);color:var(--text-main)">
+          <button class="btn btn-ghost" onclick="buscarAsiento()" title="Buscar">🔎</button>
+          <button class="btn" onclick="clearBuscarAsiento()" title="Limpiar búsqueda">Limpiar</button>
+        </div>
       </div>
-      <table>
-        <thead><tr><th>Asiento</th><th>Fecha</th><th>Concepto</th><th>Tercero</th><th>Código</th><th>Cuenta</th><th>Débito</th><th>Crédito</th><th>Estado</th><th>Acción</th></tr></thead>
-        <tbody id="tbodyDiario"></tbody>
-      </table>
+
+      <!-- Contenedor con scroll (vertical y horizontal) -->
+      <div class="scroll-container" id="asientosScroll">
+        <table class="scroll-table">
+          <thead><tr><th>Asiento</th><th>Fecha</th><th>Concepto</th><th>Tercero</th><th>Total Débito</th><th>Total Crédito</th><th>Estado</th><th>Acción</th></tr></thead>
+          <tbody id="tbodyDiario"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -751,30 +765,61 @@ document.getElementById('formAsiento').addEventListener('submit', function(e){
 
   if(editandoAsiento !== null){
     const origNum = editandoAsiento;
-    const orig = DB.diario.filter(m=>m.asiento_num===origNum && m.estado==='ACTIVO');
+    const orig = DB.diario.filter(m=>m.asiento_num===origNum);
     if(!orig.length){ showAlert('El asiento #'+origNum+' ya no existe. Modificación cancelada.','error'); cancelarEdicion(); return; }
-    DB.diario = DB.diario.filter(m=>!(m.asiento_num===origNum && m.estado==='ACTIVO'));
+
+    // Eliminamos todas las líneas existentes para ese asiento (manteniendo un único registro por asiento)
+    DB.diario = DB.diario.filter(m=>m.asiento_num !== origNum);
+
+    // Insertar las nuevas líneas como ACTIVO (mismo número de asiento). Esto garantiza que el asiento
+    // permanezca agrupado en una sola ubicación (sin duplicados dispersos).
     const terceroCab = (lineas[0] && lineas[0].mov_tercero) ? lineas[0].mov_tercero : '';
     for(const l of lineas){
-      DB.diario.push({ id:DB.nextId++, asiento_num:origNum, fecha, concepto, tercero:terceroCab,
-        codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO',
-        exchange_rate_bs:tc,
-        mov_fecha: l.mov_fecha, mov_tercero: l.mov_tercero, mov_concepto: l.mov_concepto });
+      DB.diario.push({
+        id: DB.nextId++,
+        asiento_num: origNum,
+        fecha,
+        concepto,
+        tercero: terceroCab,
+        codigo_cuenta: l.codigo,
+        debito_centavos: l.debito_centavos,
+        credito_centavos: l.credito_centavos,
+        estado: 'ACTIVO',
+        exchange_rate_bs: tc,
+        mov_fecha: l.mov_fecha,
+        mov_tercero: l.mov_tercero,
+        mov_concepto: l.mov_concepto,
+        modified_at: new Date().toISOString()
+      });
     }
+
     saveDB();
     cancelarEdicion();
-    showAlert(`Asiento #${origNum} modificado correctamente en el Libro Diario (mismo número, sin crear asientos nuevos).`,'success');
+    showAlert(`Asiento #${origNum} actualizado (todas las líneas reemplazadas por la edición).`,'success');
     renderAll();
     return;
   }
 
+  // CREAR NUEVO ASIENTO (único agrupado)
   const num = siguienteAsiento();
   const terceroCab = (lineas[0] && lineas[0].mov_tercero) ? lineas[0].mov_tercero : '';
   for(const l of lineas){
-    DB.diario.push({ id:DB.nextId++, asiento_num:num, fecha, concepto, tercero:terceroCab,
-      codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO',
+    DB.diario.push({
+      id:DB.nextId++,
+      asiento_num:num,
+      fecha,
+      concepto,
+      tercero:terceroCab,
+      codigo_cuenta:l.codigo,
+      debito_centavos:l.debito_centavos,
+      credito_centavos:l.credito_centavos,
+      estado:'ACTIVO',
       exchange_rate_bs:tc,
-      mov_fecha: l.mov_fecha, mov_tercero: l.mov_tercero, mov_concepto: l.mov_concepto });
+      mov_fecha: l.mov_fecha,
+      mov_tercero: l.mov_tercero,
+      mov_concepto: l.mov_concepto,
+      created_at: new Date().toISOString()
+    });
   }
   saveDB();
   this.reset();
@@ -786,14 +831,15 @@ document.getElementById('formAsiento').addEventListener('submit', function(e){
 });
 
 function cargarEdicion(num){
+  // Cargamos todas las líneas actuales (ACTIVO) del asiento en el formulario para edición.
   const movs = DB.diario.filter(m=>m.asiento_num===num && m.estado==='ACTIVO');
-  if(!movs.length){ showAlert('El asiento #'+num+' ya fue reversado y no puede modificarse.','error'); return; }
+  if(!movs.length){ showAlert('El asiento #'+num+' no tiene líneas activas para modificar.','error'); return; }
   editandoAsiento = num;
   const primero = movs[0];
   document.getElementById('asFecha').value = primero.fecha;
   document.getElementById('asConcepto').value = primero.concepto;
   document.getElementById('numAsientoLabel').textContent = 'MODIFICANDO #'+num;
-  document.getElementById('btnSubmitAsiento').textContent = 'Guardar Modificación (Reverso Automático)';
+  document.getElementById('btnSubmitAsiento').textContent = 'Guardar Modificación (Reemplazar líneas)';
   document.getElementById('btnCancelarEdicion').style.display='';
   document.getElementById('tbodyAsiento').innerHTML = '';
   for(const m of movs){
@@ -815,7 +861,7 @@ function cargarEdicion(num){
   updateTcInfoForDate(primero.fecha);
   actualizarLiveTotals();
   window.scrollTo({top:0,behavior:'smooth'});
-  showAlert('Modificando asiento #'+num+'. Al guardar se actualizará directamente con el mismo número de asiento.','success');
+  showAlert('Modificando asiento #'+num+'. Al guardar se reemplazarán las líneas anteriores por las nuevas.' ,'success');
 }
 
 function cancelarEdicion(){
@@ -895,35 +941,80 @@ function formatDateShort(isoDate){
   return `${parts[2]}/${parts[1]}/${yy}`;
 }
 
+function renderAsientosTable(agrupados, filterNum){
+  // agrupados: objeto con key asiento_num -> objeto agrupado
+  const tbody = document.getElementById('tbodyDiario');
+  if(!tbody){ return; }
+  let items = Object.values(agrupados).sort((a,b)=> b.asiento_num - a.asiento_num);
+  if(filterNum !== undefined && filterNum !== null){
+    items = items.filter(a=>Number(a.asiento_num) === Number(filterNum));
+  }
+  if(items.length === 0){
+    if(filterNum !== undefined && filterNum !== null){
+      tbody.innerHTML = `<tr><td colspan="8" class="small">No se encontró asiento #${filterNum}.</td></tr>`;
+    } else {
+      tbody.innerHTML = '<tr><td colspan="8" class="small">Sin movimientos registrados.</td></tr>';
+    }
+    return;
+  }
+  const rows = items.map(a=>{
+    return `<tr>
+      <td><strong>#${a.asiento_num}</strong></td>
+      <td>${formatDateShort(a.fecha)}</td>
+      <td>${a.concepto || '—'}</td>
+      <td>${a.tercero || '—'}</td>
+      <td class="num-deb">${centsToStr(a.totalDeb)}</td>
+      <td class="num-cred">${centsToStr(a.totalCred)}</td>
+      <td><span class="badge badge-debito">ACTIVO</span></td>
+      <td>
+        <button class="btn btn-ghost" style="padding:4px 8px;font-size:.75rem" onclick="verLineasAsiento(${a.asiento_num});return false">Ver Movs</button>
+        <button class="btn btn-ghost" style="padding:4px 8px;font-size:.75rem" onclick="cargarEdicion(${a.asiento_num})">Modificar</button>
+        <button class="btn btn-danger" style="padding:4px 8px;font-size:.75rem" onclick="eliminarAsiento(${a.asiento_num})">Eliminar</button>
+      </td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = rows;
+}
+
 function renderAll(){
   renderInventario();
   document.getElementById('numAsientoLabel').textContent = '#'+siguienteAsiento();
-  const movs = DB.diario.slice().sort((a,b)=> b.asiento_num-a.asiento_num || a.id-b.id);
-  const asientosActivosLista = DB.diario.filter(m=>m.estado==='ACTIVO');
-  const asientosUnicos = [...new Map(asientosActivosLista.map(m=>[m.asiento_num,m])).values()];
+
+  // AGRUPAR ASIENTOS: un solo renglón por asiento con totales
+  const activos = DB.diario.filter(m=>m.estado === 'ACTIVO');
+  const agrupados = {};
+  for(const m of activos){
+    if(!agrupados[m.asiento_num]){
+      agrupados[m.asiento_num] = {
+        asiento_num: m.asiento_num,
+        fecha: m.fecha,
+        concepto: m.concepto,
+        tercero: m.tercero || m.mov_tercero || '',
+        exchange_rate_bs: m.exchange_rate_bs || null,
+        lines: [],
+        totalDeb: 0,
+        totalCred: 0
+      };
+    }
+    agrupados[m.asiento_num].lines.push(m);
+    agrupados[m.asiento_num].totalDeb += m.debito_centavos;
+    agrupados[m.asiento_num].totalCred += m.credito_centavos;
+  }
+
+  // Exponer agrupados globalmente para la búsqueda
+  window._agrupadosAsientos = agrupados;
+
+  // Rellenar select de asientos
   const selAsiento = document.getElementById('selAsiento');
-  if(selAsiento) selAsiento.innerHTML = '<option value="">-- Seleccionar asiento a modificar --</option>' +
-    asientosUnicos.map(m=>`<option value="${m.asiento_num}">#${m.asiento_num} · ${m.fecha} · ${m.concepto} — ${m.tercero || ''}</option>`).join('');
-  const vistosAsientos = new Set();
-  document.getElementById('tbodyDiario').innerHTML = movs.map(m=>{
-    const esPrimera = !vistosAsientos.has(m.asiento_num);
-    vistosAsientos.add(m.asiento_num);
-    const c = cuentaByCodigo(m.codigo_cuenta);
-    return `<tr>
-      <td><strong>#${m.asiento_num}</strong></td>
-      <td>${formatDateShort(m.fecha)}</td>
-      <td>${m.concepto}</td><td>${m.tercero || (m.mov_tercero||'')}</td>
-      <td class="mono">${m.codigo_cuenta}</td><td>${c?c.nombre:'—'}</td>
-      <td class="num-deb">${centsToStr(m.debito_centavos)}</td>
-      <td class="num-cred">${centsToStr(m.credito_centavos)}</td>
-      <td>${m.estado==='ACTIVO'
-        ? '<span class="badge badge-debito">ACTIVO</span>'
-        : '<span class="badge badge-credito">REVERSADO</span>'}</td>
-      <td>${(m.estado==='ACTIVO' && esPrimera)
-        ? `<button class="btn btn-ghost" style="padding:4px 8px;font-size:.75rem" onclick="cargarEdicion(${m.asiento_num})">Modificar</button> <button class="btn btn-danger" style="padding:4px 8px;font-size:.75rem" onclick="eliminarAsiento(${m.asiento_num})">Eliminar</button>`
-        : '—'}</td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="11" class="small">Sin movimientos registrados.</td></tr>';
+  if(selAsiento){
+    const opts = Object.values(agrupados)
+      .sort((a,b)=>b.asiento_num - a.asiento_num)
+      .map(a=>`<option value="${a.asiento_num}">#${a.asiento_num} · ${a.fecha} · ${a.concepto} — ${a.tercero || ''}</option>`).join('');
+    selAsiento.innerHTML = '<option value="">-- Seleccionar asiento a modificar --</option>' + opts;
+  }
+
+  // Usar renderAsientosTable sin filtro (muestra todo en contenedor con scroll)
+  renderAsientosTable(agrupados, null);
 
   /* Catálogo */
   document.getElementById('tbodyCatalogo').innerHTML = DB.catalogo.slice()
@@ -934,7 +1025,7 @@ function renderAll(){
       <td>${c.ubicacion_estado}</td><td>${c.indicador_libro}</td><td>${c.seccion_destino}</td>
     </tr>`).join('');
 
-  /* Índice de asientos por cuenta */
+  /* Índice de asientos por cuenta (solo ACTIVO) */
   const asientosPorCuenta = {};
   for(const entry of DB.diario){
     if(entry.estado !== 'ACTIVO') continue;
@@ -942,10 +1033,11 @@ function renderAll(){
     asientosPorCuenta[entry.codigo_cuenta].add(entry.asiento_num);
   }
 
-  /* Libro Mayor + agregados */
+  /* Libro Mayor + agregados (usar solo movimientos ACTIVO para cálculo) */
   const mayor = DB.catalogo.map(c=>{
     let deb=0, cred=0;
     for(const m of DB.diario){
+      if(m.estado !== 'ACTIVO') continue; // <-- importante: solo activos
       if(m.codigo_cuenta===c.codigo){ deb+=m.debito_centavos; cred+=m.credito_centavos; }
     }
     const saldo = c.naturaleza==='Débito' ? deb-cred : cred-deb;
@@ -1064,6 +1156,30 @@ function renderAll(){
   document.getElementById('tbodyCierres').innerHTML = DB.cierres.slice().sort((a,b)=>b.id-a.id).map(c=>{
     return `<tr><td>${c.tipo}</td><td>${c.periodo}</td><td>#${c.asiento_num}</td><td>${c.fecha}</td><td>${c.estado}</td><td>${c.estado==='ACTIVO'?`<button class="btn btn-ghost" onclick="eliminarCierre(${c.id})">Eliminar</button>`:'—'}</td></tr>`;
   }).join('') || '<tr><td colspan="6" class="small">No hay cierres registrados.</td></tr>';
+}
+
+/* Mostrar líneas detalladas de un asiento (modal) */
+function verLineasAsiento(asientoNum){
+  const lines = DB.diario.filter(m=>m.asiento_num===asientoNum).sort((a,b)=>a.id-b.id);
+  const asiento = lines[0];
+  document.getElementById('modalTitle').textContent = `Asiento #${asientoNum} · ${asiento?formatDateShort(asiento.fecha):''}`;
+  document.getElementById('modalSubtitle').textContent = asiento ? `Concepto: ${asiento.concepto} · Tercero: ${asiento.tercero||''}` : '';
+  if(!lines.length){
+    document.getElementById('modalContent').innerHTML = '<div class="small">No hay líneas para este asiento.</div>';
+  } else {
+    const rows = lines.map(l=>`<tr>
+      <td>${l.mov_fecha || l.fecha}</td>
+      <td class="mono">${l.codigo_cuenta}</td>
+      <td>${(cuentaByCodigo(l.codigo_cuenta)||{}).nombre || ''}</td>
+      <td class="num-deb">${centsToStr(l.debito_centavos)}</td>
+      <td class="num-cred">${centsToStr(l.credito_centavos)}</td>
+      <td>${l.mov_tercero || l.tercero || ''}</td>
+      <td>${l.mov_concepto || l.concepto || ''}</td>
+    </tr>`).join('');
+    document.getElementById('modalContent').innerHTML = `<table><thead><tr><th>Fecha</th><th>Código</th><th>Cuenta</th><th>Débito</th><th>Crédito</th><th>Tercero</th><th>Concepto</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  document.getElementById('accountModal').classList.add('active');
+  document.getElementById('accountModal').setAttribute('aria-hidden','false');
 }
 
 /* ============================ 8. MODAL DE DETALLES POR CUENTA ============================ */
@@ -1608,6 +1724,34 @@ function aplicarTCNIC(){
   }
   const el = document.getElementById('manualTcInfo');
   if(el) el.textContent = lines.length ? lines.join(' | ') : 'No hay asientos activos para procesar con NIC.';
+}
+
+/* ============================ BUSCADOR DE ASIENTOS ============================ */
+function buscarAsiento(){
+  const q = document.getElementById('searchAsiento').value.trim();
+  if(!q){
+    // vacío: mostrar todos
+    renderAsientosTable(window._agrupadosAsientos, null);
+    return;
+  }
+  // aceptar formatos '#1' o '1'
+  const cleaned = q.replace('#','').trim();
+  const n = parseInt(cleaned,10);
+  if(isNaN(n)){
+    showAlert('Ingrese un número de asiento válido (ej: #1 o 1).','error');
+    return;
+  }
+  renderAsientosTable(window._agrupadosAsientos, n);
+  // desplazar el contenedor para mostrar resultado si existe
+  const asientosContainer = document.getElementById('asientosScroll');
+  if(asientosContainer){
+    asientosContainer.scrollTop = 0;
+    asientosContainer.scrollLeft = 0;
+  }
+}
+function clearBuscarAsiento(){
+  document.getElementById('searchAsiento').value = '';
+  renderAsientosTable(window._agrupadosAsientos, null);
 }
 
 /* ARRANQUE */
