@@ -755,17 +755,90 @@ document.getElementById('formAsiento').addEventListener('submit', function(e){
     const origNum = editandoAsiento;
     const orig = DB.diario.filter(m=>m.asiento_num===origNum && m.estado==='ACTIVO');
     if(!orig.length){ showAlert('El asiento #'+origNum+' ya no existe. Modificación cancelada.','error'); cancelarEdicion(); return; }
-    DB.diario = DB.diario.filter(m=>!(m.asiento_num===origNum && m.estado==='ACTIVO'));
-    const terceroCab = (lineas[0] && lineas[0].mov_tercero) ? lineas[0].mov_tercero : '';
-    for(const l of lineas){
-      DB.diario.push({ id:DB.nextId++, asiento_num:origNum, fecha, concepto, tercero:terceroCab,
-        codigo_cuenta:l.codigo, debito_centavos:l.debito_centavos, credito_centavos:l.credito_centavos, estado:'ACTIVO',
-        exchange_rate_bs:tc,
-        mov_fecha: l.mov_fecha, mov_tercero: l.mov_tercero, mov_concepto: l.mov_concepto });
+
+    const movimientosAnteriores = DB.diario.filter(m=>m.asiento_num===origNum && m.estado==='ACTIVO');
+    const anterioresPorCuenta = {};
+    const nuevosPorCuenta = {};
+
+    for(const mov of movimientosAnteriores){
+      if(!anterioresPorCuenta[mov.codigo_cuenta]){
+        anterioresPorCuenta[mov.codigo_cuenta] = { debito_centavos:0, credito_centavos:0 };
+      }
+      anterioresPorCuenta[mov.codigo_cuenta].debito_centavos += Number(mov.debito_centavos) || 0;
+      anterioresPorCuenta[mov.codigo_cuenta].credito_centavos += Number(mov.credito_centavos) || 0;
     }
+
+    for(const linea of lineas){
+      if(!nuevosPorCuenta[linea.codigo]){
+        nuevosPorCuenta[linea.codigo] = {
+          debito_centavos:0,
+          credito_centavos:0,
+          mov_fecha: linea.mov_fecha,
+          mov_tercero: linea.mov_tercero,
+          mov_concepto: linea.mov_concepto
+        };
+      }
+      nuevosPorCuenta[linea.codigo].debito_centavos += Number(linea.debito_centavos) || 0;
+      nuevosPorCuenta[linea.codigo].credito_centavos += Number(linea.credito_centavos) || 0;
+      nuevosPorCuenta[linea.codigo].mov_fecha = linea.mov_fecha;
+      nuevosPorCuenta[linea.codigo].mov_tercero = linea.mov_tercero;
+      nuevosPorCuenta[linea.codigo].mov_concepto = linea.mov_concepto;
+    }
+
+    const cuentas = new Set([...Object.keys(anterioresPorCuenta), ...Object.keys(nuevosPorCuenta)]);
+    const movimientosNuevos = [];
+
+    for(const codigo of cuentas){
+      const anterior = anterioresPorCuenta[codigo] || { debito_centavos:0, credito_centavos:0 };
+      const nuevo = nuevosPorCuenta[codigo] || {
+        debito_centavos:0,
+        credito_centavos:0,
+        mov_fecha: fecha,
+        mov_tercero:'',
+        mov_concepto:''
+      };
+
+      let diferenciaDebito = (Number(nuevo.debito_centavos) || 0) - (Number(anterior.debito_centavos) || 0);
+      let diferenciaCredito = (Number(nuevo.credito_centavos) || 0) - (Number(anterior.credito_centavos) || 0);
+
+      if(diferenciaDebito < 0){
+        diferenciaCredito += Math.abs(diferenciaDebito);
+        diferenciaDebito = 0;
+      }
+
+      if(diferenciaCredito < 0){
+        diferenciaDebito += Math.abs(diferenciaCredito);
+        diferenciaCredito = 0;
+      }
+
+      if(diferenciaDebito === 0 && diferenciaCredito === 0) continue;
+
+      movimientosNuevos.push({
+        id:DB.nextId++,
+        asiento_num:origNum,
+        fecha,
+        concepto:`${concepto} - MODIFICACIÓN`,
+        tercero: nuevo.mov_tercero || (lineas[0] && lineas[0].mov_tercero) || '',
+        codigo_cuenta:codigo,
+        debito_centavos:diferenciaDebito,
+        credito_centavos:diferenciaCredito,
+        estado:'ACTIVO',
+        exchange_rate_bs:tc,
+        mov_fecha:nuevo.mov_fecha || fecha,
+        mov_tercero:nuevo.mov_tercero || '',
+        mov_concepto:nuevo.mov_concepto || ''
+      });
+    }
+
+    if(!movimientosNuevos.length){
+      showAlert(`No existen diferencias financieras para agregar al asiento #${origNum}.`,'error');
+      return;
+    }
+
+    DB.diario.push(...movimientosNuevos);
     saveDB();
     cancelarEdicion();
-    showAlert(`Asiento #${origNum} modificado correctamente en el Libro Diario (mismo número, sin crear asientos nuevos).`,'success');
+    showAlert(`Asiento #${origNum} modificado correctamente conservando los movimientos anteriores y agregando los nuevos.`,'success');
     renderAll();
     return;
   }
@@ -818,7 +891,7 @@ function cargarEdicion(num){
   updateTcInfoForDate(primero.fecha);
   actualizarLiveTotals();
   window.scrollTo({top:0,behavior:'smooth'});
-  showAlert('Modificando asiento #'+num+'. Al guardar se actualizará directamente con el mismo número de asiento.','success');
+  showAlert('Modificando asiento #'+num+'. Al guardar se actualizará agregando los movimientos nuevos sin eliminar los anteriores.','success');
 }
 
 function cancelarEdicion(){
